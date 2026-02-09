@@ -45,7 +45,7 @@ jobs:
             type=sha,format=short
 
       - name: Checkout repository
-      - uses: actions/checkout@v4
+        uses: actions/checkout@v4
 
       - name: Build Docker Image
         uses: docker/build-push-action@v5

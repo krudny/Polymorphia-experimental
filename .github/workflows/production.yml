@@ -9,7 +9,7 @@ on:
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: europe-central2
-  REPO_NAME: polymorphia-repo
+  REPO_NAME: polymorphia
   IMAGE_NAME: polymorphia-backend
 
 jobs: 

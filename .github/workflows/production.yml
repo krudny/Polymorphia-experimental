@@ -90,14 +90,20 @@ jobs:
     steps:
       - name: Deploy to Production VM
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          REGION: europe-central2
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          REPO_NAME: polymorphia
+          IMAGE_NAME: polymorphia-backend
         with:
           host: ${{ secrets.PROD_VM_IP }}
           username: ${{ secrets.PROD_VM_USER }}
           key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          envs: REGION,PROJECT_ID,REPO_NAME,IMAGE_NAME
           script: |
-            gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+            gcloud auth configure-docker ${REGION}-docker.pkg.dev --quiet
             
-            docker pull ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:production
+            docker pull ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_NAME}:production
             
             docker stop polymorphia-backend || true
             docker rm polymorphia-backend || true
@@ -106,6 +112,7 @@ jobs:
               --name polymorphia-backend \
               --restart unless-stopped \
               -p 8080:8080 \
-              ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:production
+              -v /opt/app-config/application.properties:/app/config/application.properties:ro \
+              ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_NAME}:production
             
             docker image prune -af --filter "until=24h"

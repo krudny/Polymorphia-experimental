@@ -29,7 +29,7 @@
 	<properties>
 		<java.version>21</java.version>
 		<flyway.version>11.10.5</flyway.version>
-		<testcontainers.version>1.19.7</testcontainers.version>
+		<testcontainers.version>2.0.2</testcontainers.version>
 		<rest-assured.version>5.2.1</rest-assured.version>
 	</properties>
 	<dependencies>

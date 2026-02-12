@@ -155,3 +155,4 @@ jobs:
           
           echo "Application failed to become healthy after $max_attempts attempts"
           exit 1
+          

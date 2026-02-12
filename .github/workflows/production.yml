@@ -35,9 +35,6 @@ jobs:
 
       - name: Run tests with Maven
         working-directory: ./polymorphia-backend
-        env:
-          TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: /var/run/docker.sock
-          TESTCONTAINERS_RYUK_DISABLED: true
         run: |
           mvn test -Dspring.profiles.active=test
 
@@ -155,4 +152,3 @@ jobs:
           
           echo "Application failed to become healthy after $max_attempts attempts"
           exit 1
-          

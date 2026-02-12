@@ -130,7 +130,7 @@ jobs:
           while [ $attempt -lt $max_attempts ]; do
             echo "Attempt $((attempt+1))/$max_attempts..."
             
-            status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health || echo "000")
+            status_code=$(curl -s -o /dev/null -w "%{http_code}" http://production.polymorphia.pl:8080/actuator/health || echo "000")
             
             if [ "$status_code" = "200" ]; then
               response=$(curl -s http://localhost:8080/actuator/health)

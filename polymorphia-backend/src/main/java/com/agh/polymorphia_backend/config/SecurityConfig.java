@@ -56,6 +56,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/static/**", "/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/invitation/register-user", "/password/forgot-password", "/password/new-password").permitAll()
                         .anyRequest().authenticated())

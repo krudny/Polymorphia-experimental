@@ -118,33 +118,37 @@ jobs:
             docker image prune -af --filter "until=24h"
 
   validate: 
-    - name: Validate Deployment
-      run: |
-        max_attempts=10
-        attempt=0
-        
-        while [ $attempt -lt $max_attempts ]; do
-          echo "Attempt $((attempt+1))/$max_attempts..."
+    needs: deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate Deployment
+        run: |
+          max_attempts=10
+          attempt=0
           
-          status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health || echo "000")
-          
-          if [ "$status_code" = "200" ]; then
-            response=$(curl -s http://localhost:8080/actuator/health)
-            health_status=$(echo $response | jq -r '.status')
+          while [ $attempt -lt $max_attempts ]; do
+            echo "Attempt $((attempt+1))/$max_attempts..."
             
-            if [ "$health_status" = "UP" ]; then
-              echo "Application is up and healthy!"
-              exit 0
+            status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health || echo "000")
+            
+            if [ "$status_code" = "200" ]; then
+              response=$(curl -s http://localhost:8080/actuator/health)
+              health_status=$(echo $response | jq -r '.status')
+              
+              if [ "$health_status" = "UP" ]; then
+                echo "Application is up and healthy!"
+                exit 0
+              else
+                echo "App responded but status is: $health_status"
+              fi
             else
-              echo "App responded but status is: $health_status"
+              echo "Application not ready yet (HTTP $status_code)"
             fi
-          else
-            echo "Application not ready yet (HTTP $status_code)"
-          fi
+            
+            attempt=$((attempt+1))
+            sleep 15
+          done
           
-          attempt=$((attempt+1))
-          sleep 15
-        done
-        
-        echo "Application failed to become healthy after $max_attempts attempts"
-        exit 1
+          echo "Application failed to become healthy after $max_attempts attempts"
+          exit 1

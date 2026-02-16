@@ -19,20 +19,20 @@ on:
         value: ${{ jobs.test-backend.outputs.result }}
   workflow_dispatch:
     inputs:
-        working-directory: 
-          type: string
-          description: 'Working backend directory'
-          required: false
-          default: './polymorphia-backend'
-        spring-profile:
-          type: string
-          description: 'Spring profile to use'
-          required: false
-          default: 'test'
-      outputs:
-        test-result:
-          description: 'Test execution result'
-          value: ${{ jobs.test-backend.outputs.result }}
+      working-directory: 
+        type: string
+        description: 'Working backend directory'
+        required: false
+        default: './polymorphia-backend'
+      spring-profile:
+        type: string
+        description: 'Spring profile to use'
+        required: false
+        default: 'test'
+    outputs:
+      test-result:
+        description: 'Test execution result'
+        value: ${{ jobs.test-backend.outputs.result }}
 
 jobs: 
   test-backend: 

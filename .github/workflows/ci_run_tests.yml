@@ -1,0 +1,57 @@
+name: Run Tests
+
+on: 
+  workflow_call:
+    inputs:
+      working-directory: 
+        type: string
+        description: 'Working backend directory'
+        required: false
+        default: './polymorphia-backend'
+      spring-profile:
+        type: string
+        description: 'Spring profile to use'
+        required: false
+        default: 'test'
+    outputs:
+      test-result:
+        description: 'Test execution result'
+        value: ${{ jobs.test-backend.outputs.result }}
+  workflow_dispatch:
+
+jobs: 
+  test-backend: 
+    runs-on: ubuntu-latest
+
+    outputs:
+      result: ${{ steps.test-backend.outcome }}
+    
+    steps: 
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Java with Maven
+        uses: ./.github/actions/ci_setup_java
+
+      - name: Run Tests
+        id: test-backend
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          mvn clean test -Dspring.profiles.active=${{ inputs.spring-profile }} -B -V
+      
+      - name: Build Jar artefact
+        working-directory: ./polymorphia-backend
+        run: mvn clean package -DskipTests -Dspring.profiles.active=${{ inputs.spring-profile }}
+
+      - name: Build Test Container
+        working-directory: ./polymorphia-backend
+        run: |
+          docker build -t polymorphia-backend:test-container -f Dockerfile .
+
+      - name: Publish test results
+        uses: EnricoMi/publish-unit-test-result-action@27d65e188ec43221b20d26de30f4892fad91df2f # v2.22.0
+        if: always()
+        with:
+          files: |
+            ${{ inputs.working-directory }}/target/surefire-reports/*.xml
+          retention-days: 7

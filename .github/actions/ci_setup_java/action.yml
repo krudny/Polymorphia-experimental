@@ -1,0 +1,25 @@
+name: Setup Java with Maven Cache
+
+inputs: 
+  java-version: 
+    type: string
+    description: 'Java version to use'
+    required: false
+    default: '21'
+  working-directory: 
+    type: string
+    description: 'Working backend directory'
+    required: false
+    default: './polymorphia-backend'
+
+runs:
+  using: 'composite'
+
+  steps: 
+    - name: Setup Java
+      uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+      with: 
+        java-version: ${{ inputs.java-version }}
+        distribution: 'temurin'
+        cache: 'maven'
+        cache-dependency-path: '${{ inputs.working-directory }}/pom.xml'

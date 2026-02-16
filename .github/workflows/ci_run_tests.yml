@@ -33,6 +33,11 @@ on:
 jobs: 
   test-backend: 
     runs-on: ubuntu-latest
+    
+    permissions:
+        contents: read
+        checks: write  
+        pull-requests: write
 
     outputs:
       result: ${{ steps.test-backend.outcome }}
@@ -49,11 +54,7 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         run: |
           mvn clean test -Dspring.profiles.active=${{ inputs.spring-profile }} -B -V
-      
-      - name: Build Jar artefact
-        working-directory: ./polymorphia-backend
-        run: mvn clean package -DskipTests -Dspring.profiles.active=${{ inputs.spring-profile }}
-
+  
       - name: Build Test Container
         working-directory: ./polymorphia-backend
         run: |
@@ -65,4 +66,5 @@ jobs:
         with:
           files: |
             ${{ inputs.working-directory }}/target/surefire-reports/*.xml
-          retention-days: 7
+          comment_mode: failures  
+          check_name: 'Backend Tests'

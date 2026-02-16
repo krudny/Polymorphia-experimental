@@ -33,7 +33,7 @@ on:
 jobs: 
   test-backend: 
     runs-on: ubuntu-latest
-    
+
     permissions:
         contents: read
         checks: write  
@@ -48,6 +48,8 @@ jobs:
 
       - name: Setup Java with Maven
         uses: ./.github/actions/ci_setup_java
+        with:
+          working-directory: ${{ inputs.working-directory }}
 
       - name: Run Tests
         id: test-backend
@@ -60,11 +62,13 @@ jobs:
         run: |
           docker build -t polymorphia-backend:test-container -f Dockerfile .
 
-      - name: Publish test results
-        uses: EnricoMi/publish-unit-test-result-action@27d65e188ec43221b20d26de30f4892fad91df2f # v2.22.0
+      - name: Test Report
+        uses: dorny/test-reporter@v2
         if: always()
         with:
-          files: |
-            ${{ inputs.working-directory }}/target/surefire-reports/*.xml
-          comment_mode: failures  
-          check_name: 'Backend Tests'
+          name: Backend Tests
+          path: ${{ inputs.working-directory }}/target/surefire-reports/*.xml
+          reporter: java-junit
+          fail-on-error: true
+          list-tests: failed     
+          max-annotations: 10

@@ -64,10 +64,7 @@ jobs:
       - name: Aggregate Results
         id: aggregate
         run: |
-          lint_result="${{ needs.lint-backend.result }}"
           test_result="${{ needs.test-backend.result }}"
-          
-          echo "Lint: $lint_result"
           echo "Tests: $test_result"
           
           if [[ "$test_result" == "failure" ]]; then

@@ -57,11 +57,6 @@ jobs:
       - name: Setup Maven
         uses: ./.github/actions/ci_setup_java
       
-      # - name: Run Checkstyle
-      #   working-directory: ./polymorphia-backend
-      #   run: |
-      #     mvn checkstyle:check -B
-      
       - name: Run SpotBugs
         working-directory: ./polymorphia-backend
         run: |

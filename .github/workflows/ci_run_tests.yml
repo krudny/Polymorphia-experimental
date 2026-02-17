@@ -42,37 +42,9 @@ jobs:
           mvn clean test -Dspring.profiles.active=${{ inputs.spring-profile }} -B -V
 
       - name: Test Report
-        uses: dorny/test-reporter@v2
+        uses: mikepenz/action-junit-report@v5
         if: always()
         with:
-          name: Backend Tests
-          path: ${{ inputs.working-directory }}/target/surefire-reports/*.xml
-          reporter: java-junit
-          fail-on-error: false
-          list-tests: failed     
-          max-annotations: 10
-
-  aggregate-results:
-    runs-on: ubuntu-latest
-    if: always()
-    needs: [test-backend]
-    
-    outputs:
-      result: ${{ steps.aggregate.outputs.result }}
-    
-    steps:
-      - name: Aggregate Results
-        id: aggregate
-        run: |
-          test_result="${{ needs.test-backend.result }}"
-          echo "Tests: $test_result"
-          
-          if [[ "$test_result" == "failure" ]]; then
-            echo "result=failure" >> $GITHUB_OUTPUT
-            exit 1
-          elif [[ "$test_result" == "success" ]]; then
-            echo "result=success" >> $GITHUB_OUTPUT
-          else
-            echo "result=cancelled" >> $GITHUB_OUTPUT
-            exit 1
-          fi
+          report_paths: ${{ inputs.working-directory }}/target/surefire-reports/*.xml
+          include_passed: false
+          detailed_summary: true

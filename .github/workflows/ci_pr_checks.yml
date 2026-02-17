@@ -46,7 +46,7 @@ jobs:
           docker build -t test-build:${{ github.event.pull_request.number }} ./polymorphia-backend
   
   code-quality:
-    name: Code Quality
+    name: Check Code Quality
     runs-on: ubuntu-latest
     needs: build-check
     
@@ -65,7 +65,7 @@ jobs:
           mvn spotbugs:check -B
   
   security-scan:
-    name: Security Scan
+    name: Run Security Scan
     runs-on: ubuntu-latest
     needs: code-quality
     
@@ -88,7 +88,7 @@ jobs:
           sarif_file: 'trivy-results.sarif'
   
   pr-summary:
-    name: PR Summary
+    name: Generate Summary
     runs-on: ubuntu-latest
     needs: [tests, build-check, code-quality, security-scan]
     if: always() && github.event_name == 'pull_request'

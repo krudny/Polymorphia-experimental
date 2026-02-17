@@ -16,20 +16,36 @@ on:
     outputs:
       test-result:
         description: 'Test execution result'
-        value: ${{ jobs.test-backend.outputs.result }}
+        value: ${{ jobs.aggregate-results.outputs.result }}
 
 jobs: 
+  lint-backend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps: 
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Java with Maven
+        uses: ./.github/actions/ci_setup_java
+        with:
+          working-directory: ${{ inputs.working-directory }}
+
+      - name: Run Checkstyle
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          mvn checkstyle:check -B -V
+        continue-on-error: true
+
   test-backend: 
     runs-on: ubuntu-latest
-
     permissions:
-        contents: read
-        checks: write  
-        pull-requests: write
+      contents: read
+      checks: write  
+      pull-requests: write
 
-    outputs:
-      result: ${{ steps.test-backend.outcome }}
-    
     steps: 
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -44,11 +60,6 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         run: |
           mvn clean test -Dspring.profiles.active=${{ inputs.spring-profile }} -B -V
-  
-      - name: Build Test Container
-        working-directory: ./polymorphia-backend
-        run: |
-          docker build -t polymorphia-backend:test-container -f Dockerfile .
 
       - name: Test Report
         uses: dorny/test-reporter@v2
@@ -60,3 +71,31 @@ jobs:
           fail-on-error: false
           list-tests: failed     
           max-annotations: 10
+
+  aggregate-results:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [lint-backend, test-backend]
+    
+    outputs:
+      result: ${{ steps.aggregate.outputs.result }}
+    
+    steps:
+      - name: Aggregate Results
+        id: aggregate
+        run: |
+          lint_result="${{ needs.lint-backend.result }}"
+          test_result="${{ needs.test-backend.result }}"
+          
+          echo "Lint: $lint_result"
+          echo "Tests: $test_result"
+          
+          if [[ "$test_result" == "failure" ]]; then
+            echo "result=failure" >> $GITHUB_OUTPUT
+            exit 1
+          elif [[ "$test_result" == "success" ]]; then
+            echo "result=success" >> $GITHUB_OUTPUT
+          else
+            echo "result=cancelled" >> $GITHUB_OUTPUT
+            exit 1
+          fi

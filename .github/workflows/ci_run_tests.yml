@@ -19,26 +19,6 @@ on:
         value: ${{ jobs.aggregate-results.outputs.result }}
 
 jobs: 
-  lint-backend:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
-    steps: 
-      - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Setup Java with Maven
-        uses: ./.github/actions/ci_setup_java
-        with:
-          working-directory: ${{ inputs.working-directory }}
-
-      - name: Run Checkstyle
-        working-directory: ${{ inputs.working-directory }}
-        run: |
-          mvn checkstyle:check -B -V
-        continue-on-error: true
-
   test-backend: 
     runs-on: ubuntu-latest
     permissions:
@@ -75,7 +55,7 @@ jobs:
   aggregate-results:
     runs-on: ubuntu-latest
     if: always()
-    needs: [lint-backend, test-backend]
+    needs: [test-backend]
     
     outputs:
       result: ${{ steps.aggregate.outputs.result }}

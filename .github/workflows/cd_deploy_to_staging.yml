@@ -1,0 +1,47 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    name: Run Tests
+    uses: ./.github/workflows/ci_run_tests.yml
+  
+  build-push:
+    name: Build and Push
+    needs: tests
+    uses: ./.github/workflows/ci_build_push.yml
+    with:
+      environment: staging
+    secrets:
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      GCP_REGION: ${{ secrets.GCP_REGION }}
+      ARTIFACT_REGISTRY_NAME: ${{ secrets.ARTIFACT_REGISTRY_NAME }}
+      IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+  
+  deploy:
+    name: Deploy
+    needs: build-push
+    uses: ./.github/workflows/cd_deploy.yml
+    with:
+      environment: staging
+      image-tag: staging
+    secrets:
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      APP_DOMAIN: ${{ secrets.STAGING_APP_DOMAIN }}
+      HEALTH_ENDPOINT: ${{ secrets.HEALTH_ENDPOINT }}
+      VM_IP: ${{ secrets.STAGING_VM_IP }}
+      VM_USER: ${{ secrets.STAGING_VM_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.STAGING_SSH_PRIVATE_KEY }}
+      GCP_REGION: ${{ secrets.GCP_REGION }}
+      ARTIFACT_REGISTRY_NAME: ${{ secrets.ARTIFACT_REGISTRY_NAME }}
+      IMAGE_NAME: ${{ secrets.IMAGE_NAME }}

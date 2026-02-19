@@ -128,10 +128,10 @@ jobs:
           if [[ "${{ needs.tests.result }}" != "success" || \
                 "${{ needs.build-check.result }}" != "success" || \
                 "${{ needs.code-quality.result }}" != "success" ]]; then
-            echo "❌ Required checks failed"
+            echo "Required checks failed"
             exit 1
           else
-            echo "✅ All required checks passed"
+            echo "All required checks passed"
           fi
       
       - name: Fail job if nothing to summarize

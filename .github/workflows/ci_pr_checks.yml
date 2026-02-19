@@ -89,53 +89,24 @@ jobs:
       #     sarif_file: 'trivy-results.sarif'
   
   pr-summary:
-    name: Generate Summary
+    name: PR Checks Gate
     runs-on: ubuntu-latest
     needs: [tests, build-check, code-quality, security-scan]
-    if: always() && github.event_name == 'pull_request'
-    
+    if: always()
+
     steps:
-      - name: Check if there are results to summarize
-        id: check-results
+      - name: Check all required jobs passed
         run: |
-          if [[ "${{ needs.tests.result }}" == "skipped" && \
-                "${{ needs.build-check.result }}" == "skipped" && \
-                "${{ needs.code-quality.result }}" == "skipped" && \
-                "${{ needs.security-scan.result }}" == "skipped" ]]; then
-            echo "has_results=false" >> $GITHUB_OUTPUT
-            echo "All jobs were skipped, nothing to summarize"
-          else
-            echo "has_results=true" >> $GITHUB_OUTPUT
-          fi
-      
-      - name: Generate PR summary
-        if: steps.check-results.outputs.has_results == 'true'
-        run: |
-          echo "## Pull Request Checks Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**PR:** #${{ github.event.pull_request.number }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Target Branch:** ${{ github.base_ref }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Results:" >> $GITHUB_STEP_SUMMARY
-          echo "- Tests: ${{ needs.tests.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Build: ${{ needs.build-check.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Code Quality: ${{ needs.code-quality.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Security Scan: ${{ needs.security-scan.result }}" >> $GITHUB_STEP_SUMMARY
-          
-      - name: Check if all required checks passed
-        if: steps.check-results.outputs.has_results == 'true'
-        run: |
-          if [[ "${{ needs.tests.result }}" != "success" || \
-                "${{ needs.build-check.result }}" != "success" || \
-                "${{ needs.code-quality.result }}" != "success" ]]; then
-            echo "Required checks failed"
+          if [[ "${{ needs.tests.result }}"        != "success" || \
+                "${{ needs.build-check.result }}"  != "success" || \
+                "${{ needs.code-quality.result }}" != "success" || \
+                "${{ needs.security-scan.result }}" != "success" ]]; then
+            echo "❌ One or more required checks failed:"
+            echo "  tests:          ${{ needs.tests.result }}"
+            echo "  build-check:    ${{ needs.build-check.result }}"
+            echo "  code-quality:   ${{ needs.code-quality.result }}"
+            echo "  security-scan:  ${{ needs.security-scan.result }}"
             exit 1
-          else
-            echo "All required checks passed"
           fi
-      
-      - name: Fail job if nothing to summarize
-        if: steps.check-results.outputs.has_results == 'false'
-        run: |
-          echo "No job results to summarize - all jobs were skipped"
-          exit 1
+          echo "✅ All checks passed"
+

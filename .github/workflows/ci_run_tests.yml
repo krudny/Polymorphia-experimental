@@ -16,55 +16,41 @@ on:
     outputs:
       test-result:
         description: 'Test execution result'
-        value: ${{ jobs.test-backend.outputs.result }}
-  workflow_dispatch:
-    inputs:
-      working-directory: 
-        type: string
-        description: 'Working backend directory'
-        required: false
-        default: './polymorphia-backend'
-      spring-profile:
-        type: string
-        description: 'Spring profile to use'
-        required: false
-        default: 'test'
+        value: ${{ jobs.aggregate-results.outputs.result }}
 
 jobs: 
   test-backend: 
     runs-on: ubuntu-latest
-    
     permissions:
-        contents: read
-        checks: write  
-        pull-requests: write
+      contents: read
+      checks: write  
+      pull-requests: write
 
-    outputs:
-      result: ${{ steps.test-backend.outcome }}
-    
     steps: 
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Setup Java with Maven
         uses: ./.github/actions/ci_setup_java
+        with:
+          working-directory: ${{ inputs.working-directory }}
 
       - name: Run Tests
         id: test-backend
         working-directory: ${{ inputs.working-directory }}
         run: |
           mvn clean test -Dspring.profiles.active=${{ inputs.spring-profile }} -B -V
-  
-      - name: Build Test Container
-        working-directory: ./polymorphia-backend
-        run: |
-          docker build -t polymorphia-backend:test-container -f Dockerfile .
 
-      - name: Publish test results
-        uses: EnricoMi/publish-unit-test-result-action@27d65e188ec43221b20d26de30f4892fad91df2f # v2.22.0
+      - name: Test Report
+        uses: mikepenz/action-junit-report@74626db7353a25a20a72816467ebf035f674c5f8 # v6.0.0
         if: always()
         with:
-          files: |
-            ${{ inputs.working-directory }}/target/surefire-reports/*.xml
-          comment_mode: failures  
-          check_name: 'Backend Tests'
+          report_paths: ${{ inputs.working-directory }}/target/surefire-reports/*.xml
+          include_passed: false
+          detailed_summary: true
+          annotate_only: true
+          skip_annotations: true
+          job_summary: true
+          verbose_summary: false
+
+                

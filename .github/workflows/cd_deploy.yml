@@ -1,0 +1,136 @@
+name: Deploy Application
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Target environment (develop, staging, production)'
+        required: true
+        type: string
+      image-tag:
+        description: 'Docker image tag to deploy'
+        required: true
+        type: string
+      container-port:
+        description: 'Container port'
+        required: false
+        type: string
+        default: '8080'
+    secrets:
+      GCP_PROJECT_ID:
+        required: true
+      APP_DOMAIN:
+        required: true
+      HEALTH_ENDPOINT:
+        required: true
+      VM_IP:
+        required: true
+      VM_USER:
+        required: true
+      SSH_PRIVATE_KEY:
+        required: true
+      GCP_REGION: 
+        required: true
+      ARTIFACT_REGISTRY_NAME: 
+        required: true
+      IMAGE_NAME: 
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+    
+    steps:
+      - name: Deploy to VM
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          REGION: ${{ secrets.GCP_REGION }}
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          REPO_NAME: ${{ secrets.ARTIFACT_REGISTRY_NAME }}
+          IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+          IMAGE_TAG: ${{ inputs.image-tag }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          CONTAINER_PORT: ${{ inputs.container-port }}
+        with:
+          host: ${{ secrets.VM_IP }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: REGION,PROJECT_ID,REPO_NAME,IMAGE_NAME,IMAGE_TAG,ENVIRONMENT,CONTAINER_PORT
+          script_stop: true
+          script: |
+            set -e
+            
+            echo "Authenticating with GCP Artifact Registry..."
+            gcloud auth configure-docker ${REGION}-docker.pkg.dev --quiet
+            
+            IMAGE_URL="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_NAME}:${IMAGE_TAG}"
+            CONTAINER_NAME="polymorphia-backend-${ENVIRONMENT}"
+            
+            echo "Pulling image: ${IMAGE_URL}"
+            docker pull ${IMAGE_URL}
+            
+            echo "Stopping old container..."
+            docker stop ${CONTAINER_NAME} 2>/dev/null || true
+            docker rm ${CONTAINER_NAME} 2>/dev/null || true
+            
+            echo "Starting new container..."
+            docker run -d \
+              --name ${CONTAINER_NAME} \
+              --restart unless-stopped \
+              -p ${CONTAINER_PORT}:8080 \
+              -v /opt/app-config/${ENVIRONMENT}/application.properties:/app/config/application.properties:ro \
+              -e SPRING_PROFILES_ACTIVE=${ENVIRONMENT} \
+              -e ENVIRONMENT=${ENVIRONMENT} \
+              --label "environment=${ENVIRONMENT}" \
+              --label "version=${IMAGE_TAG}" \
+              ${IMAGE_URL}
+            
+            echo "Cleaning up old images..."
+            docker image prune -af --filter "until=48h"
+            
+            echo "Deployment completed successfully"
+      
+      - name: Wait for container startup
+        run: sleep 10
+      
+      - name: Health check
+        run: |
+          HEALTHCHECK_URL="${{ secrets.APP_DOMAIN }}${{ secrets.HEALTH_ENDPOINT }}"
+          max_attempts=15
+          attempt=0
+          
+          echo "Starting health check for ${HEALTHCHECK_URL}"
+          
+          while [ $attempt -lt $max_attempts ]; do
+            attempt=$((attempt+1))
+            echo "Attempt $attempt/$max_attempts..."
+            
+            status_code=$(curl -s -o /dev/null -w "%{http_code}" "${HEALTHCHECK_URL}" || echo "000")
+            
+            if [ "$status_code" = "200" ]; then
+              response=$(curl -s "${HEALTHCHECK_URL}")
+              health_status=$(echo $response | jq -r '.status // "UNKNOWN"')
+              
+              if [ "$health_status" = "UP" ]; then
+                echo "Application is healthy"
+                echo "## Deployment Successful" >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "**Environment:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+                echo "**Health Status:** UP" >> $GITHUB_STEP_SUMMARY
+                exit 0
+              else
+                echo "App responded but status is: $health_status"
+              fi
+            else
+              echo "Application not ready yet (HTTP $status_code)"
+            fi
+            
+            if [ $attempt -lt $max_attempts ]; then
+              sleep 20
+            fi
+          done
+          
+          echo "Application failed to become healthy after $max_attempts attempts"
+          exit 1

@@ -1,0 +1,103 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - staging
+      - main
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  security-events: write
+  actions: read
+
+jobs:
+  tests:
+    name: Run Tests
+    uses: ./.github/workflows/ci_run_tests.yml
+    
+  build-check:
+    name: Check Docker Build
+    runs-on: ubuntu-latest
+    needs: tests
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      
+      - name: Check Docker build
+        run: |
+          docker build -t test-build:${{ github.event.pull_request.number }} ./polymorphia-backend
+  
+  code-quality:
+    name: Check Code Quality
+    runs-on: ubuntu-latest
+    needs: build-check
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Maven
+        uses: ./.github/actions/ci_setup_java
+      
+      - name: Run SpotBugs
+        working-directory: ./polymorphia-backend
+        run: |
+          mvn spotbugs:check -B
+  
+  security-scan:
+    name: Run Security Scan
+    runs-on: ubuntu-latest
+    needs: code-quality
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      
+  #     - name: Run Trivy vulnerability scanner
+  #       uses: aquasecurity/trivy-action@c1824fd6edce30d7ab345a9989de00bbd46ef284 # v0.34.0
+  #       with:
+  #         scan-type: 'fs'
+  #         scan-ref: './'
+  #         format: 'sarif'
+  #         output: 'trivy-results.sarif'
+  #         exit-code: '1'
+      
+      # - name: Upload Trivy results to GitHub Security
+      #   uses: github/codeql-action/upload-sarif@v3
+      #   if: always()
+      #   with:
+      #     sarif_file: 'trivy-results.sarif'
+  
+  pr-summary:
+    name: PR Checks
+    runs-on: ubuntu-latest
+    needs: [tests, build-check, code-quality, security-scan]
+    if: always()
+
+    steps:
+      - name: Check all required jobs passed
+        run: |
+          if [[ "${{ needs.tests.result }}"        != "success" || \
+                "${{ needs.build-check.result }}"  != "success" || \
+                "${{ needs.code-quality.result }}" != "success" || \
+                "${{ needs.security-scan.result }}" != "success" ]]; then
+            echo "❌ One or more required checks failed:"
+            echo "  tests:          ${{ needs.tests.result }}"
+            echo "  build-check:    ${{ needs.build-check.result }}"
+            echo "  code-quality:   ${{ needs.code-quality.result }}"
+            echo "  security-scan:  ${{ needs.security-scan.result }}"
+            exit 1
+          fi
+          echo "✅ All checks passed"

@@ -196,6 +196,25 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			<plugin>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-maven-plugin</artifactId>
+            <version>4.9.8.1</version>
+            <configuration>
+                <effort>Max</effort>
+                <threshold>Low</threshold>
+                <failOnError>true</failOnError>
+                <xmlOutput>true</xmlOutput>
+                <spotbugsXmlOutput>true</spotbugsXmlOutput>
+            </configuration>
+            <dependencies>
+                <dependency>
+                    <groupId>com.github.spotbugs</groupId>
+                    <artifactId>spotbugs</artifactId>
+                    <version>4.9.8</version>
+                </dependency>
+            </dependencies>
+        </plugin>
 		</plugins>
 	</build>
 

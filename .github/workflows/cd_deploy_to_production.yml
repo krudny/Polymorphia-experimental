@@ -15,6 +15,12 @@ concurrency:
   group: deploy-production
   cancel-in-progress: false
 
+permissions:
+  contents: write
+  checks: write
+  pull-requests: write
+  id-token: write
+
 jobs:
   validate-manual-deployment:
     name: Validate Manual Deployment
@@ -34,10 +40,6 @@ jobs:
     name: Run Tests
     needs: [validate-manual-deployment]
     if: always() && (needs.validate-manual-deployment.result == 'success' || needs.validate-manual-deployment.result == 'skipped')
-    permissions:
-      contents: read
-      checks: write
-      pull-requests: write
     uses: ./.github/workflows/ci_run_tests.yml
   
   build-push:
@@ -77,8 +79,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [deploy]
     if: success()
-    permissions:
-      contents: write
     
     steps:
       - name: Checkout repository

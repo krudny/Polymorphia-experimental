@@ -214,8 +214,8 @@ public class CourseServiceTest {
         assertThat(result.getFirst().getName()).isEqualTo("Sample course 1");
     }
 
-//     @Test
-//     void temporaryFailingTest() {
-//         fail("Test fail for GitHub Actions testing");
-//     }
+    @Test
+    void temporaryFailingTest() {
+        fail("Test fail for GitHub Actions testing");
+    }
 }

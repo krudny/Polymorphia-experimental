@@ -51,4 +51,6 @@ jobs:
           annotate_only: true
           skip_annotations: true
           job_summary: true
+          verbose_summary: false
+
                 

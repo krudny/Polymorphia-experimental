@@ -33,14 +33,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       
-      - name: Setup Maven
-        uses: ./.github/actions/ci_setup_java
-      
-      - name: Verify build
-        working-directory: ./polymorphia-backend
-        run: |
-          mvn clean verify -DskipTests -B -V
-      
       - name: Check Docker build
         run: |
           docker build -t test-build:${{ github.event.pull_request.number }} ./polymorphia-backend

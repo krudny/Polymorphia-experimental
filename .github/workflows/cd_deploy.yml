@@ -67,7 +67,7 @@ jobs:
             gcloud auth configure-docker ${REGION}-docker.pkg.dev --quiet
             
             IMAGE_URL="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_NAME}:${IMAGE_TAG}"
-            CONTAINER_NAME="polymorphia-backend-${ENVIRONMENT}"
+            CONTAINER_NAME="polymorphia-backend"
             
             echo "Pulling image: ${IMAGE_URL}"
             docker pull ${IMAGE_URL}
@@ -81,9 +81,7 @@ jobs:
               --name ${CONTAINER_NAME} \
               --restart unless-stopped \
               -p ${CONTAINER_PORT}:8080 \
-              -v /opt/app-config/${ENVIRONMENT}/application.properties:/app/config/application.properties:ro \
-              -e SPRING_PROFILES_ACTIVE=${ENVIRONMENT} \
-              -e ENVIRONMENT=${ENVIRONMENT} \
+              -v /opt/app-config/application.properties:/app/config/application.properties:ro \
               --label "environment=${ENVIRONMENT}" \
               --label "version=${IMAGE_TAG}" \
               ${IMAGE_URL}

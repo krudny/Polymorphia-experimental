@@ -100,7 +100,7 @@ jobs:
           max_attempts=15
           attempt=0
           
-          echo "Starting health check"
+          echo "Starting health check ${HEALTHCHECK_URL}"
           
           while [ $attempt -lt $max_attempts ]; do
             attempt=$((attempt+1))

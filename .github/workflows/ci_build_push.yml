@@ -38,6 +38,7 @@ on:
 
 jobs:
   build-push:
+    name: "Build and Push"
     runs-on: ubuntu-latest
     outputs:
       image-url: ${{ steps.meta.outputs.tags }}

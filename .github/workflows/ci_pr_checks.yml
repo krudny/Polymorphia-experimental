@@ -2,11 +2,7 @@ name: Pull Request Checks
 
 on:
   pull_request:
-    branches:
-      - develop
-      - staging
-      - main
-    types: [opened, synchronize, reopened, labeled, unlabeled]
+    types: [labeled]
 
 concurrency:
   group: pr-${{ github.event.pull_request.number }}

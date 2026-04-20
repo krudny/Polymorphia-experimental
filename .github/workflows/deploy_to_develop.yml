@@ -28,7 +28,7 @@ jobs:
 
   build-push:
     name: Build and Push
-    needs: [tests, setup-environment]
+    needs: [run-tests, setup-environment]
     uses: ./.github/workflows/build_push.yml
     with:
       environment: develop

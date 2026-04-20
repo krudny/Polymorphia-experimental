@@ -6,6 +6,8 @@ on:
   
 permissions:
   statuses: write
+  contents: read
+  checks: write  
 
 jobs: 
   run-tests:

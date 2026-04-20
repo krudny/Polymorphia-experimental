@@ -1,0 +1,44 @@
+name: Build and Deploy Backend to Develop Environment
+
+on: 
+  pull_request: 
+    types: [labeled]
+  
+permissions:
+  statuses: write
+  contents: read
+  checks: write  
+
+jobs: 
+  run-tests:
+    name: Run Tests
+    uses: ./.github/workflows/run_tests.yml
+
+  setup-environment: 
+    name: Setup Environment
+    needs: [run-tests]
+    if: github.event.label.name == 'deploy-to-develop'
+    runs-on: ubuntu-latest
+
+    steps: 
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+
+      - name: Clean test database
+        run: |
+          PGPASSWORD="${{ secrets.DEVELOP_DB_PASSWORD }}" psql -h "${{ secrets.DEVELOP_VM_IP }}" -U "${{ secrets.DEVELOP_DB_USER }}" -d "${{ secrets.DEVELOP_DB_NAME }}" -p "${{ secrets.DEVELOP_DB_PORT }}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;" > /dev/null 2>&1
+
+  build-push:
+    name: Build and Push
+    needs: [run-tests, setup-environment]
+    uses: ./.github/workflows/build_push.yml
+    with:
+      environment: develop
+    secrets:
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      GCP_REGION: ${{ secrets.GCP_REGION }}
+      ARTIFACT_REGISTRY_NAME: ${{ secrets.ARTIFACT_REGISTRY_NAME }}
+      IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+
+      

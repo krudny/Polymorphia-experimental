@@ -40,5 +40,3 @@ jobs:
       GCP_REGION: ${{ secrets.GCP_REGION }}
       ARTIFACT_REGISTRY_NAME: ${{ secrets.ARTIFACT_REGISTRY_NAME }}
       IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
-
-      

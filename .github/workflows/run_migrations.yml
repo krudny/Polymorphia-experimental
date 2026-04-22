@@ -34,16 +34,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Download Flyway CLI
+      - name: Download Flyway
         run: |
-          wget -qO- https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/${{ inputs.flyway-version }}/flyway-commandline-${{ inputs.flyway-version }}-linux-x64.tar.gz | tar xvz
+          wget -qO- https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/10.17.0/flyway-commandline-10.17.0-linux-x64.tar.gz | tar xvz
+          sudo ln -s $(pwd)/flyway-10.17.0/flyway /usr/local/bin/flyway
 
-      - name: Run migrations
+      - name: Run Flyway migrations
         run: |
-          ./flyway-${{ inputs.flyway-version }}/flyway \
+          flyway \
             -url="jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}" \
             -user="${{ secrets.DB_USER }}" \
             -password="${{ secrets.DB_PASSWORD }}" \
-            -locations="filesystem:${{ inputs.working-directory }}/src/main/resources/db/migration" \
-            -connectRetries=3 \
+            -locations="filesystem:./polymorphia-backend/src/main/resources/db/migration" \
             migrate

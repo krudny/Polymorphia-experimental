@@ -47,4 +47,5 @@ jobs:
             -password="${{ secrets.DB_PASSWORD }}" \
             -locations="filesystem:./polymorphia-backend/src/main/resources/db/migration" \
             -baselineOnMigrate=true \
+            -baselineVersion=0 \
             migrate

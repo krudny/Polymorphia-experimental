@@ -25,13 +25,43 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
 
-      - name: Clean test database
+      - name: Clean develop database
         run: |
-          PGPASSWORD="${{ secrets.DEVELOP_DB_PASSWORD }}" psql -h "${{ secrets.DEVELOP_VM_IP }}" -U "${{ secrets.DEVELOP_DB_USER }}" -d "${{ secrets.DEVELOP_DB_NAME }}" -p "${{ secrets.DEVELOP_DB_PORT }}" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;" > /dev/null 2>&1
+          PGPASSWORD="${{ secrets.DEVELOP_DB_PASSWORD }}" psql \
+            -h "${{ secrets.DEVELOP_VM_IP }}" \
+            -p "${{ secrets.DEVELOP_DB_PORT }}" \
+            -U "${{ secrets.DEVELOP_DB_USER }}" \
+            -d "${{ secrets.DEVELOP_DB_NAME }}" \
+            -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO ${{ secrets.DEVELOP_DB_USER }};"
+
+      - name: Copy data from staging to develop database
+        run: |
+          PGPASSWORD="${{ secrets.STAGING_DB_PASSWORD }}" pg_dump \
+            -h "${{ secrets.STAGING_VM_IP }}" \
+            -p "${{ secrets.STAGING_DB_PORT }}" \
+            -U "${{ secrets.STAGING_DB_USER }}" \
+            "${{ secrets.STAGING_DB_NAME }}" > staging_dump.sql
+
+          PGPASSWORD="${{ secrets.DEVELOP_DB_PASSWORD }}" psql \
+            -h "${{ secrets.DEVELOP_VM_IP }}" \
+            -p "${{ secrets.DEVELOP_DB_PORT }}" \
+            -U "${{ secrets.DEVELOP_DB_USER }}" \
+            "${{ secrets.DEVELOP_DB_NAME }}" < staging_dump.sql
+      
+  migrate:
+    name: Run Migrations
+    needs: [setup-environment]
+    uses: ./.github/workflows/run_migrations.yml
+    secrets:
+      DB_HOST: ${{ secrets.DEVELOP_VM_IP }}
+      DB_PORT: ${{ secrets.DEVELOP_DB_PORT }}
+      DB_NAME: ${{ secrets.DEVELOP_DB_NAME }}
+      DB_USER: ${{ secrets.DEVELOP_DB_USER }}
+      DB_PASSWORD: ${{ secrets.DEVELOP_DB_PASSWORD }}
 
   build-push:
     name: Build and Push
-    needs: [run-tests, setup-environment]
+    needs: [run-tests, setup-environment, migrate]
     uses: ./.github/workflows/build_push.yml
     with:
       environment: develop

@@ -17,7 +17,7 @@ jobs:
 
   setup-environment: 
     name: Setup Environment
-    needs: [run-tests]
+    # needs: [run-tests]
     # if: github.event.label.name == 'deploy-to-develop'
     runs-on: ubuntu-latest
 

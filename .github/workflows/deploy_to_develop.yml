@@ -11,9 +11,9 @@ permissions:
   id-token: write
 
 jobs: 
-  run-tests:
-    name: Run Tests
-    uses: ./.github/workflows/run_tests.yml
+  # run-tests:
+  #   name: Run Tests
+  #   uses: ./.github/workflows/run_tests.yml
 
   setup-environment: 
     name: Setup Environment

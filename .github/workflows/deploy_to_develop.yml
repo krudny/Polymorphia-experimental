@@ -84,7 +84,7 @@ jobs:
       IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
 
   deploy:
-    name: Deploy and validate develop
+    name: Deploy
     needs: [build-push]
     uses: ./.github/workflows/deploy_to_env.yml
     with:

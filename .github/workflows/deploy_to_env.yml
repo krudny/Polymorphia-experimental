@@ -37,8 +37,6 @@ on:
         required: true
       IMAGE_NAME:
         required: true
-      SPRING_CONFIG_PATH:
-        required: false
 
 jobs:
   deploy:
@@ -50,7 +48,7 @@ jobs:
 
     steps:
       - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
@@ -80,10 +78,10 @@ jobs:
             docker rm "$CONTAINER" || true
 
             docker run -d --name "$CONTAINER" -p ${{ inputs.container-port }}:8080 \
-              -v /app/config:/app/config \
-              -v ~/polymorphia-static:/app/static \
-              "$IMAGE" \
-              --spring.config.location=file:/app/config/application-${{ inputs.environment }}.properties
+                        -v /mnt/data/app-config-${{ inputs.environment }}:/app/config \
+                        -v ~/polymorphia-static:/app/static \
+                        "$IMAGE" \
+                        --spring.config.location=file:/app/config/application.properties
 
             docker image prune -a --force --filter "until=168h" || true
 
@@ -94,7 +92,7 @@ jobs:
 
     steps:
       - name: Health check
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         with:
           host: ${{ secrets.VM_IP }}
           username: ${{ secrets.VM_USER }}
@@ -118,7 +116,7 @@ jobs:
 
     steps:
       - name: Set commit status
-        uses: myrotvorets/set-commit-status-action@master
+        uses: myrotvorets/set-commit-status-action@3730c0a348a2ace3c110851bed53331bc6406e9f # v2.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           status: success

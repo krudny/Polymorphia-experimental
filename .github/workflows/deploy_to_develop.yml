@@ -89,7 +89,7 @@ jobs:
     uses: ./.github/workflows/deploy_to_env.yml
     with:
       environment: develop
-      health-check-delay: 300
+      health-check-delay: 550 
     secrets:
       VM_IP: ${{ secrets.DEVELOP_VM_IP }}
       VM_USER: ${{ secrets.DEVELOP_VM_USER }}

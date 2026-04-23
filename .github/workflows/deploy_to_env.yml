@@ -92,7 +92,7 @@ jobs:
 
     steps:
       - name: Health check
-        uses: appleboy/0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         with:
           host: ${{ secrets.VM_IP }}
           username: ${{ secrets.VM_USER }}

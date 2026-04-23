@@ -49,3 +49,4 @@ jobs:
             -baselineOnMigrate=true \
             -baselineVersion=0 \
             migrate
+            

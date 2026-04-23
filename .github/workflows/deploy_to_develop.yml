@@ -2,7 +2,7 @@ name: Build and Deploy Backend to Develop Environment
 
 on: 
   pull_request: 
-    types: [labeled]
+    # types: [labeled]
   
 permissions:
   statuses: write
@@ -77,6 +77,23 @@ jobs:
     with:
       environment: develop
     secrets:
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      GCP_REGION: ${{ secrets.GCP_REGION }}
+      ARTIFACT_REGISTRY_NAME: ${{ secrets.ARTIFACT_REGISTRY_NAME }}
+      IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+
+  deploy:
+    name: Deploy and validate develop
+    needs: [build-push]
+    uses: ./.github/workflows/deploy_to_env.yml
+    with:
+      environment: develop
+      health-check-delay: 300
+    secrets:
+      VM_IP: ${{ secrets.DEVELOP_VM_IP }}
+      VM_USER: ${{ secrets.DEVELOP_VM_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.DEVELOP_SSH_PRIVATE_KEY }}
       GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
       GCP_REGION: ${{ secrets.GCP_REGION }}

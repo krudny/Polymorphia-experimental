@@ -11,14 +11,14 @@ permissions:
   id-token: write
 
 jobs: 
-  # run-tests:
-  #   name: Run Tests
-  #   uses: ./.github/workflows/run_tests.yml
+  run-tests:
+    name: Run Tests
+    uses: ./.github/workflows/run_tests.yml
 
   setup-environment: 
     name: Setup Environment
-    # needs: [run-tests]
-    # if: github.event.label.name == 'deploy-to-develop'
+    needs: [run-tests]
+    if: github.event.label.name == 'deploy-to-develop'
     runs-on: ubuntu-latest
 
     steps: 

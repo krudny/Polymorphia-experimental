@@ -75,7 +75,6 @@ jobs:
           images: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_NAME }}/${{ secrets.IMAGE_NAME }}
           tags: |
             type=raw,value=${{ inputs.environment }}
-            type=raw,value=${{ inputs.image-tag }},enable=${{ inputs.image-tag != '' }}
             type=sha,format=short,prefix=${{ inputs.environment }}-
             type=ref,event=pr,prefix=pr-
           labels: |
@@ -91,6 +90,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: true

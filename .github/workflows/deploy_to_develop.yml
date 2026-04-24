@@ -2,7 +2,7 @@ name: Build and Deploy Backend to Develop Environment
 
 on: 
   pull_request: 
-    # types: [labeled]
+    types: [labeled]
   
 permissions:
   statuses: write

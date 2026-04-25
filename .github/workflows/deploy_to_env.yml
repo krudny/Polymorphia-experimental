@@ -1,0 +1,125 @@
+name: Deploy to Environment
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+        description: "Target environment: develop | staging | production"
+      container-name:
+        type: string
+        required: false
+        default: "polymorphia-backend"
+      container-port:
+        type: string
+        required: false
+        default: "8080"
+      health-check-delay:
+        type: number
+        required: false
+        default: 300
+        description: "Seconds to wait before health check"
+    secrets:
+      VM_IP:
+        required: true
+      VM_USER:
+        required: true
+      SSH_PRIVATE_KEY:
+        required: true
+      GCP_PROJECT_ID:
+        required: true
+      GCP_SA_KEY:
+        required: true
+      GCP_REGION:
+        required: true
+      ARTIFACT_REGISTRY_NAME:
+        required: true
+      IMAGE_NAME:
+        required: true
+
+jobs:
+  deploy:
+    name: "Deploy to ${{ inputs.environment }}"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Get access token
+        id: token
+        run: |
+          TOKEN=$(gcloud auth print-access-token)
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy container
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        with:
+          host: ${{ secrets.VM_IP }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            IMAGE="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_NAME }}/${{ secrets.IMAGE_NAME }}:${{ inputs.environment }}"
+            CONTAINER="${{ inputs.container-name }}-${{ inputs.environment }}"
+
+            echo "${{ steps.token.outputs.token }}" | docker login \
+              ${{ secrets.GCP_REGION }}-docker.pkg.dev --username oauth2accesstoken --password-stdin
+
+            docker pull "$IMAGE"
+
+            docker stop "$CONTAINER" || true
+            docker rm "$CONTAINER" || true
+
+            docker run -d --name "$CONTAINER" -p ${{ inputs.container-port }}:8080 \
+                        -v /mnt/data/app-config-${{ inputs.environment }}:/app/config \
+                        -v ~/polymorphia-static:/app/static \
+                        "$IMAGE" \
+                        --spring.config.location=file:/app/config/application.properties
+
+            docker image prune -a --force --filter "until=168h" || true
+
+  validate:
+    name: "Validate ${{ inputs.environment }}"
+    needs: [deploy]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Health check
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        with:
+          host: ${{ secrets.VM_IP }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            CONTAINER="${{ inputs.container-name }}-${{ inputs.environment }}"
+            sleep ${{ inputs.health-check-delay }}
+            if ! docker ps --filter "name=$CONTAINER" --quiet | grep -q .; then
+              echo "Container $CONTAINER is not running!"
+              docker logs "$CONTAINER" --tail 50
+              exit 1
+            fi
+            echo "Container $CONTAINER is healthy."
+
+  report-status:
+    name: "Report Status"
+    needs: [validate]
+    runs-on: ubuntu-latest
+    permissions:
+      statuses: write
+
+    steps:
+      - name: Set commit status
+        uses: myrotvorets/set-commit-status-action@3730c0a348a2ace3c110851bed53331bc6406e9f # v2.0.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: success
+          context: "deploy-${{ inputs.environment }}-success"
+          description: "Deployment to ${{ inputs.environment }} completed successfully"
+          sha: ${{ github.event.pull_request.head.sha }}

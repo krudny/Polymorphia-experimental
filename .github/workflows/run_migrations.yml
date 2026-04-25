@@ -1,0 +1,51 @@
+name: Run Flyway Migrations
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        type: string
+        description: 'Working backend directory'
+        required: false
+        default: './polymorphia-backend'
+      flyway-version:
+        type: string
+        description: 'Flyway CLI version'
+        required: false
+        default: '10.17.0'
+    secrets:
+      DB_HOST:
+        required: true
+      DB_PORT:
+        required: true
+      DB_NAME:
+        required: true
+      DB_USER:
+        required: true
+      DB_PASSWORD:
+        required: true
+
+jobs:
+  migrate:
+    name: "Run Migrations"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Download Flyway
+        run: |
+          wget -qO- https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/10.17.0/flyway-commandline-10.17.0-linux-x64.tar.gz | tar xvz
+          sudo ln -s $(pwd)/flyway-10.17.0/flyway /usr/local/bin/flyway
+
+      - name: Run Flyway migrations
+        run: |
+          flyway \
+            -url="jdbc:postgresql://${{ secrets.DB_HOST }}:${{ secrets.DB_PORT }}/${{ secrets.DB_NAME }}" \
+            -user="${{ secrets.DB_USER }}" \
+            -password="${{ secrets.DB_PASSWORD }}" \
+            -locations="filesystem:./polymorphia-backend/src/main/resources/db/migration" \
+            -baselineOnMigrate=true \
+            -baselineVersion=0 \
+            migrate

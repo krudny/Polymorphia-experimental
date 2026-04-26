@@ -112,7 +112,6 @@ jobs:
             MAX_WAIT=${{ inputs.health-check-delay }}
             INTERVAL=60
 
-            echo "${HEALTH_URL}"
             elapsed=0
 
             echo "Checking: $HEALTH_URL"

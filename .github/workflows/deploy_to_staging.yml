@@ -49,6 +49,7 @@ jobs:
       environment: staging
       health-check-delay: 500
       container-port: 8081
+      app-domain: ${{ secrets.STAGING_APP_DOMAIN }}
     secrets:
       VM_IP: ${{ secrets.STAGING_VM_IP }}
       VM_USER: ${{ secrets.STAGING_VM_USER }}
@@ -58,3 +59,4 @@ jobs:
       GCP_REGION: ${{ secrets.GCP_REGION }}
       ARTIFACT_REGISTRY_NAME: ${{ secrets.ARTIFACT_REGISTRY_NAME }}
       IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+      HEALTH_ENDPOINT: ${{ secrets.HEALTH_ENDPOINT }}

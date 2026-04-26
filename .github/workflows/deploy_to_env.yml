@@ -96,43 +96,44 @@ jobs:
     needs: [deploy]
     runs-on: ubuntu-latest
 
-    - name: Health check
-      uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
-      with:
-        host: ${{ secrets.VM_IP }}
-        username: ${{ secrets.VM_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          CONTAINER="${{ inputs.container-name }}-${{ inputs.environment }}"
-          HEALTH_URL="${{ inputs.app-domain }}${{ secrets.HEALTH_ENDPOINT }}"
-          MAX_WAIT=${{ inputs.health-check-delay }}
-          INTERVAL=60
-          elapsed=0
+    steps:
+      - name: Health check
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        with:
+          host: ${{ secrets.VM_IP }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            CONTAINER="${{ inputs.container-name }}-${{ inputs.environment }}"
+            HEALTH_URL="${{ inputs.app-domain }}${{ secrets.HEALTH_ENDPOINT }}"
+            MAX_WAIT=${{ inputs.health-check-delay }}
+            INTERVAL=60
+            elapsed=0
 
-          echo "Waiting ${MAX_WAIT}s for container to start..."
+            echo "Waiting ${MAX_WAIT}s for container to become healthy..."
 
-          while [ $elapsed -lt $MAX_WAIT ]; do
-            sleep $INTERVAL
-            elapsed=$((elapsed + INTERVAL))
+            while [ $elapsed -lt $MAX_WAIT ]; do
+              HTTP_CODE=$(curl -s -o /tmp/health_response.json -w "%{http_code}" "$HEALTH_URL" || true)
 
-            echo "[$elapsed/${MAX_WAIT}s] Checking health endpoint..."
+              echo "[$elapsed/${MAX_WAIT}s] HTTP status: $HTTP_CODE"
+              cat /tmp/health_response.json || true
 
-            HTTP_CODE=$(curl -s -o /tmp/health_response.json -w "%{http_code}" "$HEALTH_URL" || echo "000")
-            echo "HTTP status: $HTTP_CODE"
-            cat /tmp/health_response.json
+              if [ "$HTTP_CODE" = "200" ]; then
+                echo "Health check passed!"
+                exit 0
+              fi
 
-            if [ "$HTTP_CODE" = "200" ]; then
-              echo "Health check passed!"
-              exit 0
+              sleep $INTERVAL
+              elapsed=$((elapsed + INTERVAL))
+            done
+
+            echo "Health check FAILED after ${MAX_WAIT}s"
+            if docker ps --filter "name=$CONTAINER" --quiet | grep -q .; then
+              docker logs "$CONTAINER" --tail 100
+            else
+              echo "Container $CONTAINER is not running"
             fi
-
-            echo "Not healthy yet, retrying in ${INTERVAL}s..."
-          done
-
-          echo "Health check FAILED after ${MAX_WAIT}s!"
-          echo "Last container logs:"
-          docker logs "$CONTAINER" --tail 50
-          exit 1
+            exit 1
 
   report-status:
     name: "Report Status"

@@ -42,9 +42,6 @@ on:
       APP_DOMAIN:
         required: true
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   deploy:
     name: "Deploy to ${{ inputs.environment }}"
@@ -52,10 +49,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
-
     steps:
       - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
@@ -67,7 +63,7 @@ jobs:
           echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
 
       - name: Deploy container
-        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2
         with:
           host: ${{ secrets.VM_IP }}
           username: ${{ secrets.VM_USER }}
@@ -101,15 +97,13 @@ jobs:
     name: "Validate ${{ inputs.environment }}"
     needs: [deploy]
     runs-on: ubuntu-latest
-
     steps:
       - name: Health check
-        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2
         with:
           host: ${{ secrets.VM_IP }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          capture_stdout: true
           script: |
             set -uo pipefail
 
@@ -124,7 +118,6 @@ jobs:
 
             while [ "$elapsed" -lt "$MAX_WAIT" ]; do
               HTTP_CODE=$(curl -sS -o /tmp/health_response.json -w "%{http_code}" "$HEALTH_URL" || echo "000")
-
               echo "[$elapsed/${MAX_WAIT}s] HTTP $HTTP_CODE"
               cat /tmp/health_response.json || true
               echo ""
@@ -157,10 +150,9 @@ jobs:
     if: always()
     permissions:
       statuses: write
-
     steps:
       - name: Set commit status
-        uses: myrotvorets/set-commit-status-action@3730c0a348a2ace3c110851bed53331bc6406e9f # v2.0.1
+        uses: myrotvorets/set-commit-status-action@3730c0a348a2ace3c110851bed53331bc6406e9f
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           status: ${{ needs.validate.result == 'success' && 'success' || 'failure' }}

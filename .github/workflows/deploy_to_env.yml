@@ -111,13 +111,15 @@ jobs:
             HEALTH_URL="${{ secrets.APP_DOMAIN }}${{ secrets.HEALTH_ENDPOINT }}"
             MAX_WAIT=${{ inputs.health-check-delay }}
             INTERVAL=60
+
+            echo "${HEALTH_URL}"
             elapsed=0
 
             echo "Checking: $HEALTH_URL"
             echo "Max wait: ${MAX_WAIT}s (retry every ${INTERVAL}s)"
 
             while [ "$elapsed" -lt "$MAX_WAIT" ]; do
-              HTTP_CODE=$(curl -sS -o /tmp/health_response.json -w "%{http_code}" "$HEALTH_URL" || echo "000")
+              HTTP_CODE=$(curl -sSL -o /tmp/health_response.json -w "%{http_code}" "$HEALTH_URL" || echo "000")
               echo "[$elapsed/${MAX_WAIT}s] HTTP $HTTP_CODE"
               cat /tmp/health_response.json || true
               echo ""

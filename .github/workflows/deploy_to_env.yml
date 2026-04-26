@@ -19,11 +19,11 @@ on:
         type: number
         required: false
         default: 300
-        description: "Seconds to wait before health check"
+        description: "Max seconds to wait for health check"
       app-domain:
         type: string
         required: true
-        description: "Application domain for health checks (e.g., http://example.com)"
+        description: "Application domain for health checks (e.g. https://staging.polymorphia.pl)"
     secrets:
       VM_IP:
         required: true
@@ -43,6 +43,9 @@ on:
         required: true
       HEALTH_ENDPOINT:
         required: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   deploy:
@@ -72,6 +75,8 @@ jobs:
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            set -euo pipefail
+
             IMAGE="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_NAME }}/${{ secrets.IMAGE_NAME }}:${{ inputs.environment }}"
             CONTAINER="${{ inputs.container-name }}-${{ inputs.environment }}"
 
@@ -83,11 +88,14 @@ jobs:
             docker stop "$CONTAINER" || true
             docker rm "$CONTAINER" || true
 
-            docker run -d --name "$CONTAINER" -p ${{ inputs.container-port }}:8080 \
-                        -v /mnt/data/app-config-${{ inputs.environment }}:/app/config \
-                        -v ~/polymorphia-static:/app/static \
-                        "$IMAGE" \
-                        --spring.config.location=file:/app/config/application.properties
+            docker run -d \
+              --name "$CONTAINER" \
+              --restart unless-stopped \
+              -p ${{ inputs.container-port }}:8080 \
+              -v /mnt/data/app-config-${{ inputs.environment }}:/app/config:ro \
+              -v /mnt/data/static:/app/static:ro \
+              "$IMAGE" \
+              --spring.config.location=file:/app/config/application.properties
 
             docker image prune -a --force --filter "until=168h" || true
 
@@ -103,42 +111,52 @@ jobs:
           host: ${{ secrets.VM_IP }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          capture_stdout: true
           script: |
+            set -uo pipefail
+
             CONTAINER="${{ inputs.container-name }}-${{ inputs.environment }}"
             HEALTH_URL="${{ inputs.app-domain }}${{ secrets.HEALTH_ENDPOINT }}"
             MAX_WAIT=${{ inputs.health-check-delay }}
             INTERVAL=60
             elapsed=0
 
-            echo "Waiting ${MAX_WAIT}s for container to become healthy..."
+            echo "Checking: $HEALTH_URL"
+            echo "Max wait: ${MAX_WAIT}s (retry every ${INTERVAL}s)"
 
-            while [ $elapsed -lt $MAX_WAIT ]; do
-              HTTP_CODE=$(curl -s -o /tmp/health_response.json -w "%{http_code}" "$HEALTH_URL" || true)
+            while [ "$elapsed" -lt "$MAX_WAIT" ]; do
+              HTTP_CODE=$(curl -sS -o /tmp/health_response.json -w "%{http_code}" "$HEALTH_URL" || echo "000")
 
-              echo "[$elapsed/${MAX_WAIT}s] HTTP status: $HTTP_CODE"
+              echo "[$elapsed/${MAX_WAIT}s] HTTP $HTTP_CODE"
               cat /tmp/health_response.json || true
+              echo ""
 
               if [ "$HTTP_CODE" = "200" ]; then
                 echo "Health check passed!"
                 exit 0
               fi
 
-              sleep $INTERVAL
+              sleep "$INTERVAL"
               elapsed=$((elapsed + INTERVAL))
             done
 
             echo "Health check FAILED after ${MAX_WAIT}s"
+
             if docker ps --filter "name=$CONTAINER" --quiet | grep -q .; then
+              echo "Container logs:"
               docker logs "$CONTAINER" --tail 100
             else
               echo "Container $CONTAINER is not running"
+              docker ps -a
             fi
+
             exit 1
 
   report-status:
     name: "Report Status"
     needs: [validate]
     runs-on: ubuntu-latest
+    if: always()
     permissions:
       statuses: write
 
@@ -147,7 +165,7 @@ jobs:
         uses: myrotvorets/set-commit-status-action@3730c0a348a2ace3c110851bed53331bc6406e9f # v2.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          status: success
-          context: "deploy-${{ inputs.environment }}-success"
-          description: "Deployment to ${{ inputs.environment }} completed successfully"
-          sha: ${{ github.event.pull_request.head.sha }}
+          status: ${{ needs.validate.result == 'success' && 'success' || 'failure' }}
+          context: "deploy/${{ inputs.environment }}"
+          description: ${{ needs.validate.result == 'success' && 'Deployment succeeded' || 'Deployment failed' }}
+          sha: ${{ github.event.pull_request.head.sha || github.sha }}

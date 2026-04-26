@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - develop
-  workflow_dispatch: 
+  workflow_dispatch:
 
 permissions:
   statuses: write
@@ -47,8 +47,8 @@ jobs:
     uses: ./.github/workflows/deploy_to_env.yml
     with:
       environment: staging
-      health-check-delay: 500
       container-port: 8081
+      health-check-delay: 500
       app-domain: ${{ secrets.STAGING_APP_DOMAIN }}
     secrets:
       VM_IP: ${{ secrets.STAGING_VM_IP }}

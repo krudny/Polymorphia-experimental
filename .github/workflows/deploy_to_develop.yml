@@ -91,7 +91,6 @@ jobs:
       environment: develop
       container-port: 8082
       health-check-delay: 550
-      app-domain: ${{ secrets.DEVELOP_APP_DOMAIN }}
     secrets:
       VM_IP: ${{ secrets.DEVELOP_VM_IP }}
       VM_USER: ${{ secrets.DEVELOP_VM_USER }}
@@ -102,3 +101,4 @@ jobs:
       ARTIFACT_REGISTRY_NAME: ${{ secrets.ARTIFACT_REGISTRY_NAME }}
       IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
       HEALTH_ENDPOINT: ${{ secrets.HEALTH_ENDPOINT }}
+      APP_DOMAIN: ${{ secrets.DEVELOP_APP_DOMAIN }}

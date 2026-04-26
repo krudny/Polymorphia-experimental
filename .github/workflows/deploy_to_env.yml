@@ -20,10 +20,6 @@ on:
         required: false
         default: 300
         description: "Max seconds to wait for health check"
-      app-domain:
-        type: string
-        required: true
-        description: "Application domain for health checks (e.g. https://staging.polymorphia.pl)"
     secrets:
       VM_IP:
         required: true
@@ -42,6 +38,8 @@ on:
       IMAGE_NAME:
         required: true
       HEALTH_ENDPOINT:
+        required: true
+      APP_DOMAIN:
         required: true
 
 env:
@@ -116,7 +114,7 @@ jobs:
             set -uo pipefail
 
             CONTAINER="${{ inputs.container-name }}-${{ inputs.environment }}"
-            HEALTH_URL="${{ inputs.app-domain }}${{ secrets.HEALTH_ENDPOINT }}"
+            HEALTH_URL="${{ secrets.APP_DOMAIN }}${{ secrets.HEALTH_ENDPOINT }}"
             MAX_WAIT=${{ inputs.health-check-delay }}
             INTERVAL=60
             elapsed=0

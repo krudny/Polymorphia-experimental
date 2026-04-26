@@ -59,4 +59,4 @@ jobs:
       ARTIFACT_REGISTRY_NAME: ${{ secrets.ARTIFACT_REGISTRY_NAME }}
       IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
       HEALTH_ENDPOINT: ${{ secrets.HEALTH_ENDPOINT }}
-      APP_DOMAIN: ${{ secrets.DEVELOP_APP_DOMAIN }}
+      APP_DOMAIN: ${{ secrets.STAGING_APP_DOMAIN }}

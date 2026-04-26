@@ -48,6 +48,7 @@ jobs:
     with:
       environment: staging
       health-check-delay: 500
+      container-port: 8081
     secrets:
       VM_IP: ${{ secrets.STAGING_VM_IP }}
       VM_USER: ${{ secrets.STAGING_VM_USER }}

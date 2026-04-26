@@ -12,9 +12,9 @@ on:
         required: false
         default: "polymorphia-backend"
       container-port:
-        type: string
+        type: number
         required: false
-        default: "8080"
+        default: 8080
       health-check-delay:
         type: number
         required: false

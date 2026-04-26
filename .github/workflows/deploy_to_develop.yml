@@ -90,6 +90,7 @@ jobs:
     with:
       environment: develop
       health-check-delay: 550 
+      container-port: 8082
     secrets:
       VM_IP: ${{ secrets.DEVELOP_VM_IP }}
       VM_USER: ${{ secrets.DEVELOP_VM_USER }}

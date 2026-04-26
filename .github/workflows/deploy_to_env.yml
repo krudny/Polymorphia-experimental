@@ -85,7 +85,7 @@ jobs:
             docker run -d \
               --name "$CONTAINER" \
               --restart unless-stopped \
-              -p ${{ inputs.container-port }}:8080 \
+              -p ${{ inputs.container-port }}:${{ inputs.container-port }} \
               -v /mnt/data/app-config-${{ inputs.environment }}:/app/config:ro \
               -v /mnt/data/static:/app/static:ro \
               "$IMAGE" \

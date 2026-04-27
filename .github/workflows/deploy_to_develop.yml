@@ -1,29 +1,29 @@
-name: Build and Deploy Backend to Develop Environment
+name: Build and Deploy Backend to Develop
 
-on: 
-  pull_request: 
+on:
+  pull_request:
     types: [labeled]
-  
+
 permissions:
   statuses: write
   contents: read
   checks: write
   id-token: write
 
-jobs: 
+jobs:
   run-tests:
     name: Run Tests
+    if: github.event.label.name == 'deploy-to-develop'
     uses: ./.github/workflows/run_tests.yml
 
-  setup-environment: 
+  setup-environment:
     name: Setup Environment
     needs: [run-tests]
-    if: github.event.label.name == 'deploy-to-develop'
     runs-on: ubuntu-latest
 
-    steps: 
+    steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # 6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
 
       - name: Install PostgreSQL 17 client tools
         run: |
@@ -33,7 +33,7 @@ jobs:
           sudo sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] \
             https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
             > /etc/apt/sources.list.d/pgdg.list'
-          sudo apt-get update
+          sudo apt-get update -qq
           sudo apt-get install -y postgresql-client-17
 
       - name: Clean develop database
@@ -58,7 +58,7 @@ jobs:
             -p "${{ secrets.DEVELOP_DB_PORT }}" \
             -U "${{ secrets.DEVELOP_DB_USER }}" \
             "${{ secrets.DEVELOP_DB_NAME }}" < staging_dump.sql
-      
+
   migrate:
     name: Run Migrations
     needs: [setup-environment]
@@ -89,7 +89,8 @@ jobs:
     uses: ./.github/workflows/deploy_to_env.yml
     with:
       environment: develop
-      health-check-delay: 550 
+      container-port: 8082
+      health-check-delay: 550
     secrets:
       VM_IP: ${{ secrets.DEVELOP_VM_IP }}
       VM_USER: ${{ secrets.DEVELOP_VM_USER }}
@@ -99,3 +100,5 @@ jobs:
       GCP_REGION: ${{ secrets.GCP_REGION }}
       ARTIFACT_REGISTRY_NAME: ${{ secrets.ARTIFACT_REGISTRY_NAME }}
       IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+      HEALTH_ENDPOINT: ${{ secrets.HEALTH_ENDPOINT }}
+      APP_DOMAIN: ${{ secrets.DEVELOP_APP_DOMAIN }}

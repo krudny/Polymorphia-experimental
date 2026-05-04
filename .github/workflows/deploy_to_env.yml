@@ -157,6 +157,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           status: ${{ needs.validate.result == 'success' && 'success' || 'failure' }}
-          context: "deploy/${{ inputs.environment }}"
-          description: ${{ needs.validate.result == 'success' && 'Deployment succeeded' || 'Deployment failed' }}
+          context: "Polymorphia Backend / Deploy to ${{ inputs.environment }}"
+          description: ${{ needs.validate.result == 'success' && 'Application is healthy and running' || 'Deployment or health check failed' }}
           sha: ${{ github.event.pull_request.head.sha || github.sha }}

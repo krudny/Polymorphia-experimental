@@ -1,0 +1,162 @@
+name: Deploy to Environment
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+        description: "Target environment: develop | staging | production"
+      container-name:
+        type: string
+        required: false
+        default: "polymorphia-backend"
+      container-port:
+        type: number
+        required: false
+        default: 8080
+      health-check-delay:
+        type: number
+        required: false
+        default: 300
+        description: "Max seconds to wait for health check"
+    secrets:
+      VM_IP:
+        required: true
+      VM_USER:
+        required: true
+      SSH_PRIVATE_KEY:
+        required: true
+      GCP_PROJECT_ID:
+        required: true
+      GCP_SA_KEY:
+        required: true
+      GCP_REGION:
+        required: true
+      ARTIFACT_REGISTRY_NAME:
+        required: true
+      IMAGE_NAME:
+        required: true
+      HEALTH_ENDPOINT:
+        required: true
+      APP_DOMAIN:
+        required: true
+
+jobs:
+  deploy:
+    name: "Deploy to ${{ inputs.environment }}"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Get access token
+        id: token
+        run: |
+          TOKEN=$(gcloud auth print-access-token)
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy container
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2
+        with:
+          host: ${{ secrets.VM_IP }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -euo pipefail
+
+            IMAGE="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_NAME }}/${{ secrets.IMAGE_NAME }}:${{ inputs.environment }}"
+            CONTAINER="${{ inputs.container-name }}-${{ inputs.environment }}"
+
+            echo "${{ steps.token.outputs.token }}" | docker login \
+              ${{ secrets.GCP_REGION }}-docker.pkg.dev --username oauth2accesstoken --password-stdin
+
+            docker pull "$IMAGE"
+
+            docker stop "$CONTAINER" || true
+            docker rm "$CONTAINER" || true
+
+            docker run -d \
+              --name "$CONTAINER" \
+              --restart unless-stopped \
+              -p ${{ inputs.container-port }}:${{ inputs.container-port }} \
+              -v /mnt/data/app-config-${{ inputs.environment }}:/app/config:ro \
+              -v /mnt/data/static:/app/static:ro \
+              "$IMAGE" \
+              --spring.config.location=file:/app/config/application.properties
+
+            docker image prune -a --force --filter "until=168h" || true
+
+  validate:
+    name: "Validate ${{ inputs.environment }}"
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health check
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2
+        with:
+          host: ${{ secrets.VM_IP }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -uo pipefail
+
+            CONTAINER="${{ inputs.container-name }}-${{ inputs.environment }}"
+            HEALTH_URL="${{ secrets.APP_DOMAIN }}${{ secrets.HEALTH_ENDPOINT }}"
+            MAX_WAIT=${{ inputs.health-check-delay }}
+            INTERVAL=60
+
+            elapsed=0
+
+            echo "Checking: $HEALTH_URL"
+            echo "Max wait: ${MAX_WAIT}s (retry every ${INTERVAL}s)"
+
+            while [ "$elapsed" -lt "$MAX_WAIT" ]; do
+              HTTP_CODE=$(curl -sSL -o /tmp/health_response.json -w "%{http_code}" "$HEALTH_URL" || echo "000")
+              echo "[$elapsed/${MAX_WAIT}s] HTTP $HTTP_CODE"
+              cat /tmp/health_response.json || true
+              echo ""
+
+              if [ "$HTTP_CODE" = "200" ]; then
+                echo "Health check passed!"
+                exit 0
+              fi
+
+              sleep "$INTERVAL"
+              elapsed=$((elapsed + INTERVAL))
+            done
+
+            echo "Health check FAILED after ${MAX_WAIT}s"
+
+            if docker ps --filter "name=$CONTAINER" --quiet | grep -q .; then
+              echo "Container logs:"
+              docker logs "$CONTAINER" --tail 100
+            else
+              echo "Container $CONTAINER is not running"
+              docker ps -a
+            fi
+
+            exit 1
+
+  report-status:
+    name: "Report Status"
+    needs: [validate]
+    runs-on: ubuntu-latest
+    if: always()
+    permissions:
+      statuses: write
+    steps:
+      - name: Set commit status
+        uses: myrotvorets/set-commit-status-action@c3bb276f37397c42c5616c9dcb262fa221a278ca
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: ${{ needs.validate.result == 'success' && 'success' || 'failure' }}
+          context: "Polymorphia Backend / Deploy to ${{ inputs.environment }}"
+          description: ${{ needs.validate.result == 'success' && 'Application is healthy and running' || 'Deployment or health check failed' }}
+          sha: ${{ github.event.pull_request.head.sha || github.sha }}

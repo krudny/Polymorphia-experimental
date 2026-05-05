@@ -80,7 +80,7 @@ jobs:
             docker pull "$IMAGE"
 
             docker update --restart=no "$CONTAINER" 2>/dev/null || true
-            docker stop --time 30 "$CONTAINER" 2>/dev/null || true
+            docker stop --timeout 30 "$CONTAINER" 2>/dev/null || true
             docker rm "$CONTAINER" 2>/dev/null || true
 
             docker run -d \

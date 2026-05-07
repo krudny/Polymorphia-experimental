@@ -3,7 +3,7 @@ name: Build and Deploy Backend to Develop
 on:
   pull_request:
     types: [labeled]
-  wokrflow_dispatch:
+  workflow_dispatch:
 
 permissions:
   statuses: write

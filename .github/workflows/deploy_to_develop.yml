@@ -14,7 +14,6 @@ permissions:
 jobs:
   run-tests:
     name: Run Tests
-    if: github.event.label.name == 'deploy-to-develop'
     uses: ./.github/workflows/run_tests.yml
 
   setup-environment:

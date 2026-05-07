@@ -12,6 +12,10 @@ permissions:
   checks: write
   id-token: write
 
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
 jobs:
   run-tests:
     name: Run Tests

@@ -1,6 +1,7 @@
 resource "google_compute_address" "free_tier_static_ip" {
   name   = "polymorphia-dev-staging-ip"
   region = "us-central1"
+  network_tier = "STANDARD"
 }
 
 resource "google_compute_instance" "vm_free_tier" {

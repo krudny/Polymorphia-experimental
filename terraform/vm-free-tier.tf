@@ -20,6 +20,7 @@ resource "google_compute_instance" "vm_free_tier" {
   network_interface {
     subnetwork = google_compute_subnetwork.subnet_us.id
     access_config {
+      network_tier = "STANDARD"
       nat_ip = google_compute_address.free_tier_static_ip.address
     }
   }

@@ -32,7 +32,7 @@ resource "google_compute_instance_template" "prod_template" {
     source_image = "debian-cloud/debian-12"
     auto_delete  = true
     boot         = true
-    disk_type    = "pd-standard"
+    disk_type    = "pd-balanced"
     disk_size_gb = 10
   }
 

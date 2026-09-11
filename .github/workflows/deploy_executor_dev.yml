@@ -96,8 +96,9 @@ jobs:
           echo "Updating service on dev-executor via IAP tunnel..."
           ssh dev-executor << 'EOF'
             set -euo pipefail
-            sudo mkdir -p /mnt/data/executor
-            sudo mv /tmp/executor.jar /mnt/data/executor/executor.jar
+            sudo mkdir -p /opt/polymorphia-executor /mnt/data/executor
+            sudo cp /tmp/executor.jar /opt/polymorphia-executor/executor.jar
+            sudo mv /tmp/executor.jar /mnt/data/executor/executor.jar 2>/dev/null || true
             sudo systemctl daemon-reload
             sudo systemctl enable polymorphia-code-executor
             sudo systemctl restart polymorphia-code-executor

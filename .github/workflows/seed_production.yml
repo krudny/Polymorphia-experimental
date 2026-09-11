@@ -1,0 +1,60 @@
+name: "DB | Seed Production"
+
+on:
+  workflow_dispatch:
+    inputs:
+      seed_path:
+        description: "Path to SQL seed file in private GCS bucket (e.g. seeds/seed-basic.sql)"
+        required: true
+        default: "seeds/seed-basic.sql"
+        type: string
+      confirmation_text:
+        description: "Type CONFIRM_PRODUCTION to apply seed to production"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: db-ops-production
+  cancel-in-progress: false
+
+jobs:
+  seed:
+    name: Seed Production Database
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Verify authorized user
+        run: |
+          if [ "${{ github.actor }}" != "krudny" ]; then
+            echo "Error: User ${{ github.actor }} is not authorized to seed database."
+            exit 1
+          fi
+
+      - name: Verify production confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirmation_text }}" != "CONFIRM_PRODUCTION" ]; then
+            echo "Error: CONFIRM_PRODUCTION confirmation is required for production."
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Seed Database
+        uses: ./.github/actions/seed_database
+        with:
+          gcp-sa-key: ${{ secrets.GCP_SA_KEY }}
+          bucket-name: ${{ secrets.SEED_BUCKET_NAME }}
+          seed-path: ${{ github.event.inputs.seed_path }}
+          vm-ip: ${{ secrets.PRODUCTION_VM_IP }}
+          vm-user: ${{ secrets.PRODUCTION_VM_USER }}
+          ssh-private-key: ${{ secrets.PRODUCTION_SSH_PRIVATE_KEY }}
+          db-name: ${{ secrets.PRODUCTION_DB_NAME }}
+          db-user: ${{ secrets.PRODUCTION_DB_USER }}
+          db-password: ${{ secrets.PRODUCTION_DB_PASSWORD }}
+          db-port: ${{ secrets.PRODUCTION_DB_PORT }}

@@ -1,0 +1,48 @@
+name: "DB | Seed Staging"
+
+on:
+  workflow_dispatch:
+    inputs:
+      seed_path:
+        description: "Path to SQL seed file in private GCS bucket (e.g. seeds/seed-basic.sql)"
+        required: true
+        default: "seeds/seed-basic.sql"
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: db-ops-staging
+  cancel-in-progress: false
+
+jobs:
+  seed:
+    name: Seed Staging Database
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Verify authorized user
+        run: |
+          if [ "${{ github.actor }}" != "krudny" ]; then
+            echo "Error: User ${{ github.actor }} is not authorized to seed database."
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Seed Database
+        uses: ./.github/actions/seed_database
+        with:
+          gcp-sa-key: ${{ secrets.GCP_SA_KEY }}
+          bucket-name: ${{ secrets.SEED_BUCKET_NAME }}
+          seed-path: ${{ github.event.inputs.seed_path }}
+          vm-ip: ${{ secrets.STAGING_VM_IP }}
+          vm-user: ${{ secrets.STAGING_VM_USER }}
+          ssh-private-key: ${{ secrets.STAGING_SSH_PRIVATE_KEY }}
+          db-name: ${{ secrets.STAGING_DB_NAME }}
+          db-user: ${{ secrets.STAGING_DB_USER }}
+          db-password: ${{ secrets.STAGING_DB_PASSWORD }}
+          db-port: ${{ secrets.STAGING_DB_PORT }}

@@ -1,0 +1,99 @@
+name: Seed Database Action
+description: 'Downloads SQL seed file from GCS, creates pre-seed backup, and applies seed in a single transaction'
+
+inputs:
+  gcp-sa-key:
+    description: 'GCP Service Account Key JSON'
+    required: true
+  bucket-name:
+    description: 'GCS Bucket Name containing seed files'
+    required: true
+  seed-path:
+    description: 'Relative path to SQL file in GCS bucket'
+    required: true
+  vm-ip:
+    description: 'Target VM IP address'
+    required: true
+  vm-user:
+    description: 'SSH Username'
+    required: true
+  ssh-private-key:
+    description: 'SSH Private Key'
+    required: true
+  db-name:
+    description: 'Target database name'
+    required: true
+  db-user:
+    description: 'Database username'
+    required: true
+  db-password:
+    description: 'Database password'
+    required: true
+  db-port:
+    description: 'Database port'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+      with:
+        credentials_json: ${{ inputs.gcp-sa-key }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+
+    - name: Download seed file from GCS
+      shell: bash
+      run: |
+        mkdir -p /tmp/seed
+        gcloud storage cp "gs://${{ inputs.bucket-name }}/${{ inputs.seed-path }}" /tmp/seed/seed.sql
+        test -s /tmp/seed/seed.sql
+
+    - name: Create schema backup on target VM
+      uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+      with:
+        host: ${{ inputs.vm-ip }}
+        username: ${{ inputs.vm-user }}
+        key: ${{ inputs.ssh-private-key }}
+        script: |
+          set -euo pipefail
+          export PGPASSWORD="${{ inputs.db-password }}"
+          DB_PORT="${{ inputs.db-port }}"
+          BACKUP_DIR="/mnt/data/backups"
+          if [ ! -d "$BACKUP_DIR" ]; then
+            BACKUP_DIR="/tmp/backups"
+          fi
+          mkdir -p "$BACKUP_DIR"
+          BACKUP_FILE="${BACKUP_DIR}/${{ inputs.db-name }}_pre_seed_$(date +%Y%m%d_%H%M%S).sql.gz"
+          pg_dump -h localhost -p "$DB_PORT" -U "${{ inputs.db-user }}" -d "${{ inputs.db-name }}" | gzip > "$BACKUP_FILE"
+          test -s "$BACKUP_FILE"
+
+    - name: Copy seed file to target VM
+      uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
+      with:
+        host: ${{ inputs.vm-ip }}
+        username: ${{ inputs.vm-user }}
+        key: ${{ inputs.ssh-private-key }}
+        source: '/tmp/seed/seed.sql'
+        target: '/tmp/'
+        strip_components: 2
+
+    - name: Reset schema and apply seed in single transaction
+      uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+      with:
+        host: ${{ inputs.vm-ip }}
+        username: ${{ inputs.vm-user }}
+        key: ${{ inputs.ssh-private-key }}
+        script: |
+          set -euo pipefail
+          export PGPASSWORD="${{ inputs.db-password }}"
+          DB_PORT="${{ inputs.db-port }}"
+          psql -h localhost -p "$DB_PORT" -U "${{ inputs.db-user }}" -d "${{ inputs.db-name }}" --single-transaction -v ON_ERROR_STOP=1 <<EOF
+          DROP SCHEMA public CASCADE;
+          CREATE SCHEMA public;
+          GRANT ALL ON SCHEMA public TO "${{ inputs.db-user }}";
+          \i /tmp/seed.sql
+          EOF
+          rm -f /tmp/seed.sql

@@ -80,7 +80,7 @@ runs:
         target: '/tmp/'
         strip_components: 2
 
-    - name: Reset schema and apply seed in single transaction
+    - name: Apply seed script on target database
       uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
       with:
         host: ${{ inputs.vm-ip }}
@@ -90,10 +90,29 @@ runs:
           set -euo pipefail
           export PGPASSWORD="${{ inputs.db-password }}"
           DB_PORT="${{ inputs.db-port }}"
-          psql -h localhost -p "$DB_PORT" -U "${{ inputs.db-user }}" -d "${{ inputs.db-name }}" --single-transaction -v ON_ERROR_STOP=1 <<EOF
-          DROP SCHEMA public CASCADE;
-          CREATE SCHEMA public;
-          GRANT ALL ON SCHEMA public TO "${{ inputs.db-user }}";
-          \i /tmp/seed.sql
+
+          # Clean existing data before seeding so scripts with pure INSERTs work without key conflicts
+          psql -h localhost -p "$DB_PORT" -U "${{ inputs.db-user }}" -d "${{ inputs.db-name }}" -v ON_ERROR_STOP=1 <<'EOF'
+          DO $$
+          DECLARE
+              stmt text;
+              table_count int;
+          BEGIN
+              SELECT count(*), 'TRUNCATE TABLE ' || string_agg(quote_ident(schemaname) || '.' || quote_ident(tablename), ', ') || ' RESTART IDENTITY CASCADE;'
+              INTO table_count, stmt
+              FROM pg_tables
+              WHERE schemaname = 'public' AND tablename NOT LIKE 'flyway_%';
+
+              IF table_count = 0 THEN
+                  RAISE EXCEPTION 'Database has no tables in schema public. Please run Flyway migrations first before seeding.';
+              END IF;
+
+              IF stmt IS NOT NULL THEN
+                  EXECUTE stmt;
+              END IF;
+          END $$;
           EOF
+
+          # Apply seed script
+          psql -h localhost -p "$DB_PORT" -U "${{ inputs.db-user }}" -d "${{ inputs.db-name }}" -v ON_ERROR_STOP=1 -f /tmp/seed.sql
           rm -f /tmp/seed.sql

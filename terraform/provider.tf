@@ -7,7 +7,7 @@ terraform {
     }
   }
   backend "gcs" {
-    bucket = "polymorphia-b52b06-terraform-state"
+    bucket = "polymorphia-b52b06-tfstate-us"
     prefix = "terraform/state"
   }
 }

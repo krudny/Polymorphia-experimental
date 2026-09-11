@@ -38,22 +38,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Open SSH Tunnel if SSH credentials provided
-        if: secrets.SSH_PRIVATE_KEY != ''
+      - name: Configure database connection and SSH tunnel
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          VM_USER: ${{ secrets.VM_USER }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H "${{ secrets.DB_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
-          ssh -f -N -L 15432:localhost:5432 -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "${{ secrets.VM_USER }}@${{ secrets.DB_HOST }}"
-          echo "TUNNEL_PORT=15432" >> $GITHUB_ENV
-          echo "TARGET_HOST=localhost" >> $GITHUB_ENV
-
-      - name: Direct connection without SSH Tunnel
-        if: secrets.SSH_PRIVATE_KEY == ''
-        run: |
-          echo "TUNNEL_PORT=${{ secrets.DB_PORT }}" >> $GITHUB_ENV
-          echo "TARGET_HOST=${{ secrets.DB_HOST }}" >> $GITHUB_ENV
+          if [ -n "$SSH_PRIVATE_KEY" ]; then
+            echo "SSH credentials provided, opening SSH tunnel..."
+            mkdir -p ~/.ssh
+            echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            ssh-keyscan -H "$DB_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+            ssh -f -N -L 15432:localhost:5432 -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "$VM_USER@$DB_HOST"
+            echo "TUNNEL_PORT=15432" >> $GITHUB_ENV
+            echo "TARGET_HOST=localhost" >> $GITHUB_ENV
+          else
+            echo "No SSH key provided, using direct connection..."
+            echo "TUNNEL_PORT=$DB_PORT" >> $GITHUB_ENV
+            echo "TARGET_HOST=$DB_HOST" >> $GITHUB_ENV
+          fi
 
       - name: Download Flyway
         run: |

@@ -18,6 +18,7 @@ concurrency:
 
 jobs:
   run-tests:
+    if: github.event_name != 'workflow_dispatch' || github.actor == 'krudny'
     name: Run Tests
     uses: ./.github/workflows/run_tests.yml
 

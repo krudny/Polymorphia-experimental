@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   run-tests:
+    if: github.event_name != 'workflow_dispatch' || github.actor == 'krudny'
     name: Run Tests
     uses: ./.github/workflows/run_tests.yml
 
@@ -26,6 +27,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Verify authorized user for manual deploy
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "${{ github.actor }}" != "krudny" ]; then
+            echo "Error: User ${{ github.actor }} is not authorized to deploy to develop."
+            exit 1
+          fi
+
       - name: Reset develop and copy data from staging via SSH
         uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2
         with:

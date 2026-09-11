@@ -71,7 +71,7 @@ jobs:
           script: |
             set -euo pipefail
 
-            IMAGE="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_NAME }}/${{ secrets.IMAGE_NAME }}:${{ inputs.environment }}"
+            IMAGE="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_NAME }}/${{ secrets.IMAGE_NAME }}:latest-${{ inputs.environment }}"
             CONTAINER="${{ inputs.container-name }}-${{ inputs.environment }}"
 
             echo "${{ steps.token.outputs.token }}" | docker login \
@@ -86,6 +86,8 @@ jobs:
             docker run -d \
               --name "$CONTAINER" \
               --restart unless-stopped \
+              --log-opt max-size=30m \
+              --log-opt max-file=3 \
               -p ${{ inputs.container-port }}:${{ inputs.container-port }} \
               -v /mnt/data/app-config-${{ inputs.environment }}:/app/config:ro \
               -v /mnt/data/static:/app/static \
@@ -115,7 +117,6 @@ jobs:
 
             elapsed=0
 
-            echo "Checking: $HEALTH_URL"
             echo "Max wait: ${MAX_WAIT}s (retry every ${INTERVAL}s)"
 
             while [ "$elapsed" -lt "$MAX_WAIT" ]; do
@@ -161,3 +162,4 @@ jobs:
           context: "Polymorphia Backend / Deploy to ${{ inputs.environment }}"
           description: ${{ needs.validate.result == 'success' && 'Application is healthy and running' || 'Deployment or health check failed' }}
           sha: ${{ github.event.pull_request.head.sha || github.sha }}
+          

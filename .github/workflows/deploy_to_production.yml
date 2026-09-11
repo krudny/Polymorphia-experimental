@@ -1,9 +1,9 @@
 name: Build and Deploy Backend to Production
 
 on:
-#  push:
-#    branches:
-#      - main
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -21,20 +21,9 @@ jobs:
     name: Run Tests
     uses: ./.github/workflows/run_tests.yml
 
-  migrate:
-    name: Run Migrations
-    needs: [run-tests]
-    uses: ./.github/workflows/run_migrations.yml
-    secrets:
-      DB_HOST: ${{ secrets.PRODUCTION_DB_HOST }}
-      DB_PORT: ${{ secrets.PRODUCTION_DB_PORT }}
-      DB_NAME: ${{ secrets.PRODUCTION_DB_NAME }}
-      DB_USER: ${{ secrets.PRODUCTION_DB_USER }}
-      DB_PASSWORD: ${{ secrets.PRODUCTION_DB_PASSWORD }}
-
   build-push:
     name: Build and Push
-    needs: [migrate]
+    needs: [run-tests]
     uses: ./.github/workflows/build_push.yml
     with:
       environment: production
@@ -45,9 +34,22 @@ jobs:
       ARTIFACT_REGISTRY_NAME: ${{ secrets.ARTIFACT_REGISTRY_NAME }}
       IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
 
+  migrate:
+    name: Run Migrations
+    needs: [build-push]
+    uses: ./.github/workflows/run_migrations.yml
+    secrets:
+      DB_HOST: ${{ secrets.PRODUCTION_DB_HOST }}
+      DB_PORT: ${{ secrets.PRODUCTION_DB_PORT }}
+      DB_NAME: ${{ secrets.PRODUCTION_DB_NAME }}
+      DB_USER: ${{ secrets.PRODUCTION_DB_USER }}
+      DB_PASSWORD: ${{ secrets.PRODUCTION_DB_PASSWORD }}
+      VM_USER: ${{ secrets.PRODUCTION_VM_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.PRODUCTION_SSH_PRIVATE_KEY }}
+
   deploy:
     name: Deploy
-    needs: [build-push]
+    needs: [migrate]
     uses: ./.github/workflows/deploy_to_env.yml
     with:
       environment: production

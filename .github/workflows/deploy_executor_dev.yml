@@ -1,0 +1,28 @@
+name: Deploy Code Executor to Dev
+
+on:
+  pull_request:
+    types: [labeled, synchronize]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-executor-dev
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: contains(github.event.pull_request.labels.*.name, 'deploy-executor-dev') || github.event_name == 'workflow_dispatch'
+    name: Deploy Executor to Dev
+    uses: ./.github/workflows/deploy_executor_to_env.yml
+    with:
+      environment: dev-executor
+      service-name: polymorphia-code-executor
+      service-port: 8100
+      target-dir: /mnt/data/executor
+    secrets:
+      VM_IP: ${{ secrets.DEV_EXECUTOR_VM_IP || secrets.VM_IP }}
+      VM_USER: ${{ secrets.DEV_EXECUTOR_VM_USER || secrets.VM_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.DEV_EXECUTOR_SSH_PRIVATE_KEY || secrets.SSH_PRIVATE_KEY }}

@@ -26,42 +26,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
+      - name: Reset develop and copy data from staging via SSH
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2
+        with:
+          host: ${{ secrets.DEVELOP_VM_IP }}
+          username: ${{ secrets.DEVELOP_VM_USER }}
+          key: ${{ secrets.DEVELOP_SSH_PRIVATE_KEY }}
+          script: |
+            set -euo pipefail
+            export PGPASSWORD="${{ secrets.DEVELOP_DB_PASSWORD }}"
+            psql -h localhost -p ${{ secrets.DEVELOP_DB_PORT }} -U "${{ secrets.DEVELOP_DB_USER }}" -d "${{ secrets.DEVELOP_DB_NAME }}" -v ON_ERROR_STOP=1 \
+              -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO ${{ secrets.DEVELOP_DB_USER }};"
 
-      - name: Install PostgreSQL 17 client tools
-        run: |
-          sudo install -d /usr/share/postgresql-common/pgdg
-          sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail \
-            https://www.postgresql.org/media/keys/ACCC4CF8.asc
-          sudo sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] \
-            https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
-            > /etc/apt/sources.list.d/pgdg.list'
-          sudo apt-get update -qq
-          sudo apt-get install -y postgresql-client-17
-
-      - name: Clean develop database
-        run: |
-          PGPASSWORD="${{ secrets.DEVELOP_DB_PASSWORD }}" psql \
-            -h "${{ secrets.DEVELOP_VM_IP }}" \
-            -p "${{ secrets.DEVELOP_DB_PORT }}" \
-            -U "${{ secrets.DEVELOP_DB_USER }}" \
-            -d "${{ secrets.DEVELOP_DB_NAME }}" \
-            -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO ${{ secrets.DEVELOP_DB_USER }};"
-
-      - name: Copy data from staging to develop database
-        run: |
-          PGPASSWORD="${{ secrets.STAGING_DB_PASSWORD }}" pg_dump \
-            -h "${{ secrets.STAGING_VM_IP }}" \
-            -p "${{ secrets.STAGING_DB_PORT }}" \
-            -U "${{ secrets.STAGING_DB_USER }}" \
-            "${{ secrets.STAGING_DB_NAME }}" > staging_dump.sql
-
-          PGPASSWORD="${{ secrets.DEVELOP_DB_PASSWORD }}" psql \
-            -h "${{ secrets.DEVELOP_VM_IP }}" \
-            -p "${{ secrets.DEVELOP_DB_PORT }}" \
-            -U "${{ secrets.DEVELOP_DB_USER }}" \
-            "${{ secrets.DEVELOP_DB_NAME }}" < staging_dump.sql
+            export PGPASSWORD="${{ secrets.STAGING_DB_PASSWORD }}"
+            pg_dump -h localhost -p ${{ secrets.STAGING_DB_PORT }} -U "${{ secrets.STAGING_DB_USER }}" "${{ secrets.STAGING_DB_NAME }}" | \
+              PGPASSWORD="${{ secrets.DEVELOP_DB_PASSWORD }}" psql -h localhost -p ${{ secrets.DEVELOP_DB_PORT }} -U "${{ secrets.DEVELOP_DB_USER }}" -d "${{ secrets.DEVELOP_DB_NAME }}" -v ON_ERROR_STOP=1
 
   migrate:
     name: Run Migrations
@@ -73,6 +52,8 @@ jobs:
       DB_NAME: ${{ secrets.DEVELOP_DB_NAME }}
       DB_USER: ${{ secrets.DEVELOP_DB_USER }}
       DB_PASSWORD: ${{ secrets.DEVELOP_DB_PASSWORD }}
+      VM_USER: ${{ secrets.DEVELOP_VM_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.DEVELOP_SSH_PRIVATE_KEY }}
 
   build-push:
     name: Build and Push

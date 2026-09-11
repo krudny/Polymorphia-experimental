@@ -1,0 +1,30 @@
+name: Deploy Code Executor to Production
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "polymorphia-code-executor/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-executor-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy Executor to Production
+    uses: ./.github/workflows/deploy_executor_to_env.yml
+    with:
+      environment: production
+      service-name: polymorphia-code-executor
+      service-port: 8100
+      target-dir: /mnt/data/executor
+    secrets:
+      VM_IP: ${{ secrets.PRODUCTION_VM_IP || secrets.VM_IP }}
+      VM_USER: ${{ secrets.PRODUCTION_VM_USER || secrets.VM_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.PRODUCTION_SSH_PRIVATE_KEY || secrets.SSH_PRIVATE_KEY }}

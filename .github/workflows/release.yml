@@ -1,0 +1,183 @@
+name: Release new version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.validate.outputs.version }}
+      develop_sha: ${{ steps.check-branches.outputs.develop_sha }}
+    steps:
+      - name: Check workflow branch
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          if [ "${BRANCH}" != "develop" ]; then
+            echo "::error::This workflow can only be run from branch develop."
+            exit 1
+          fi
+
+      - name: Check authorized user
+        env:
+          ACTOR: ${{ github.actor }}
+        run: |
+          ALLOWED_USERS="krudny"
+          if [[ ! " ${ALLOWED_USERS} " =~ " ${ACTOR} " ]]; then
+            echo "::error::User '${ACTOR}' is not authorized to create releases."
+            echo "::error::Allowed users: ${ALLOWED_USERS}"
+            exit 1
+          fi
+
+      - name: Validate semantic versioning format
+        id: validate
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+        run: |
+          if [[ ! "${VERSION}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Invalid version format '${VERSION}'. Expected format: v1.2.3"
+            exit 1
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
+        with:
+          fetch-depth: 0
+
+      - name: Check tag does not already exist
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+        run: |
+          if git rev-parse "refs/tags/${VERSION}" >/dev/null 2>&1; then
+            echo "::error::Tag ${VERSION} already exists!"
+            exit 1
+          fi
+
+      - name: Verify branch develop is ahead of branch main
+        id: check-branches
+        run: |
+          git fetch origin main develop
+          MAIN_SHA=$(git rev-parse origin/main)
+          DEVELOP_SHA=$(git rev-parse origin/develop)
+          echo "develop_sha=${DEVELOP_SHA}" >> "$GITHUB_OUTPUT"
+
+          if [ "${MAIN_SHA}" = "${DEVELOP_SHA}" ]; then
+            echo "::error::Branch develop and branch main are at the same commit. Nothing to release."
+            exit 1
+          fi
+
+          if ! git merge-base --is-ancestor origin/main origin/develop; then
+            echo "::error::Branch main has commits not in branch develop. Fast-forward is not possible. Please rebase branch develop on branch main first."
+            exit 1
+          fi
+
+          COMMIT_COUNT=$(git rev-list --count origin/main..origin/develop)
+          echo "Branch develop is ${COMMIT_COUNT} commit(s) ahead of branch main."
+
+      - name: Verify staging deployment is healthy
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEVELOP_SHA: ${{ steps.check-branches.outputs.develop_sha }}
+        run: |
+          LATEST_RUN=$(gh run list \
+            --workflow=deploy_to_staging.yml \
+            --branch=develop \
+            --limit=1 \
+            --json conclusion,headSha,status,createdAt)
+
+          RUN_STATUS=$(echo "${LATEST_RUN}" | jq -r '.[0].status')
+          RUN_CONCLUSION=$(echo "${LATEST_RUN}" | jq -r '.[0].conclusion')
+          RUN_SHA=$(echo "${LATEST_RUN}" | jq -r '.[0].headSha')
+          RUN_DATE=$(echo "${LATEST_RUN}" | jq -r '.[0].createdAt')
+
+          echo "Latest staging run:"
+          echo "  Status:     ${RUN_STATUS}"
+          echo "  Conclusion: ${RUN_CONCLUSION}"
+          echo "  Commit:     ${RUN_SHA:0:7}"
+          echo "  Date:       ${RUN_DATE}"
+
+          if [ "${RUN_STATUS}" != "completed" ]; then
+            echo "::error::Staging deployment is still in progress (status: ${RUN_STATUS}). Wait for it to finish before releasing."
+            exit 1
+          fi
+
+          if [ "${RUN_CONCLUSION}" != "success" ]; then
+            echo "::error::Latest staging deployment failed (conclusion: ${RUN_CONCLUSION}). Fix staging before releasing to production."
+            exit 1
+          fi
+
+          if [ "${RUN_SHA}" != "${DEVELOP_SHA}" ]; then
+            echo "::error::Latest successful staging deployment (${RUN_SHA:0:7}) does not match branch develop HEAD (${DEVELOP_SHA:0:7})."
+            echo "::error::Push to branch develop to trigger a new staging deployment, then try again."
+            exit 1
+          fi
+
+          echo "Staging deployment is healthy for branch develop HEAD (${DEVELOP_SHA:0:7})."
+
+  fast-forward:
+    name: Fast-forward branch main to branch develop
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fast-forward branch main to branch develop
+        run: |
+          git fetch origin main develop
+          git checkout main
+          git merge --ff-only origin/develop
+          echo "Branch main fast-forwarded to branch develop successfully."
+
+      - name: Create annotated tag
+        env:
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          git tag -a "${VERSION}" -m "Release ${VERSION}"
+          echo "Created annotated tag ${VERSION}."
+
+      - name: Push branch main and tag
+        env:
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          git push origin main --follow-tags
+          echo "Pushed branch main and tag ${VERSION}."
+
+  create-release:
+    name: Create GitHub Release
+    needs: [validate, fast-forward]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          gh release create "${VERSION}" \
+            --title "Release ${VERSION}" \
+            --generate-notes \
+            --latest
+          echo "GitHub Release ${VERSION} created successfully."

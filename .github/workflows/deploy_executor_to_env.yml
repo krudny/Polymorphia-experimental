@@ -1,0 +1,90 @@
+name: Deploy Code Executor to Environment
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+        description: "Target environment: dev-executor | production"
+      service-name:
+        type: string
+        required: false
+        default: "polymorphia-code-executor"
+        description: "Systemd service name"
+      service-port:
+        type: number
+        required: false
+        default: 8100
+        description: "HTTP service port for health check"
+      target-dir:
+        type: string
+        required: false
+        default: "/mnt/data/executor"
+        description: "Installation directory on target host"
+    secrets:
+      VM_IP:
+        required: true
+      VM_USER:
+        required: true
+      SSH_PRIVATE_KEY:
+        required: true
+
+jobs:
+  deploy:
+    name: "Deploy Executor to ${{ inputs.environment }}"
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Java 25
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: "temurin"
+          java-version: "25"
+          cache: "gradle"
+
+      - name: Build JAR with Gradle
+        working-directory: ./polymorphia-code-executor
+        run: |
+          ./gradlew clean bootJar
+          mkdir -p build/artifacts
+          cp $(ls build/libs/*.jar | grep -v 'plain' | head -n 1) build/artifacts/executor.jar
+
+      - name: Copy JAR to target host
+        uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
+        with:
+          host: ${{ secrets.VM_IP }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "./polymorphia-code-executor/build/artifacts/executor.jar"
+          target: "/tmp/"
+          strip_components: 3
+
+      - name: Update service and verify health
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        with:
+          host: ${{ secrets.VM_IP }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -euo pipefail
+            sudo mkdir -p "${{ inputs.target-dir }}"
+            sudo mv /tmp/executor.jar "${{ inputs.target-dir }}/executor.jar"
+            sudo systemctl daemon-reload
+            sudo systemctl enable "${{ inputs.service-name }}"
+            sudo systemctl restart "${{ inputs.service-name }}"
+
+            for i in {1..15}; do
+              if curl -sf "http://localhost:${{ inputs.service-port }}/actuator/health" >/dev/null 2>&1; then
+                echo "Service ${{ inputs.service-name }} is healthy on port ${{ inputs.service-port }}."
+                exit 0
+              fi
+              sleep 2
+            done
+
+            echo "Error: Service ${{ inputs.service-name }} failed health check."
+            sudo journalctl -u "${{ inputs.service-name }}" -n 50 --no-pager
+            exit 1

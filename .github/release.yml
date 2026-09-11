@@ -1,0 +1,22 @@
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+    authors:
+      - dependabot
+  categories:
+    - title: "New Features"
+      labels:
+        - feature
+    - title: "Bug Fixes"
+      labels:
+        - bug
+        - bugfix
+        - fix
+    - title: "Maintenance"
+      labels:
+        - chore
+        - refactor
+    - title: "Other Changes"
+      labels:
+        - "*"

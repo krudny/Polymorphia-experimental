@@ -53,6 +53,10 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
 
+      - name: Install NumPy for fast IAP tunnel transfer
+        run: |
+          pip3 install --quiet numpy
+
       - name: Check Dev Executor VM Status
         run: |
           VM_NAME="${{ secrets.DEV_EXECUTOR_VM_NAME }}"

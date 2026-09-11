@@ -59,7 +59,7 @@ jobs:
           host: ${{ secrets.VM_IP }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "./polymorphia-code-executor/build/artifacts/executor.jar"
+          source: "polymorphia-code-executor/build/artifacts/executor.jar"
           target: "/tmp/"
           strip_components: 3
 
@@ -72,7 +72,19 @@ jobs:
           script: |
             set -euo pipefail
             sudo mkdir -p "${{ inputs.target-dir }}"
-            sudo mv /tmp/executor.jar "${{ inputs.target-dir }}/executor.jar"
+            if [ -f /tmp/executor.jar ]; then
+              sudo mv /tmp/executor.jar "${{ inputs.target-dir }}/executor.jar"
+            elif [ -f /tmp/artifacts/executor.jar ]; then
+              sudo mv /tmp/artifacts/executor.jar "${{ inputs.target-dir }}/executor.jar"
+            else
+              JAR_FILE=$(sudo find /tmp -maxdepth 3 -name "executor.jar" | head -n 1)
+              if [ -n "$JAR_FILE" ]; then
+                sudo mv "$JAR_FILE" "${{ inputs.target-dir }}/executor.jar"
+              else
+                echo "Error: executor.jar not found in /tmp"
+                exit 1
+              fi
+            fi
             sudo systemctl daemon-reload
             sudo systemctl enable "${{ inputs.service-name }}"
             sudo systemctl restart "${{ inputs.service-name }}"

@@ -1,12 +1,12 @@
 resource "google_storage_bucket" "seed_bucket" {
   name                     = "polymorphia-db-seeds-${var.project_id}"
-  location                 = "EU"
+  location                 = "us-central1"
   storage_class            = "STANDARD"
   public_access_prevention = "enforced"
   uniform_bucket_level_access = true
 
   versioning {
-    enabled = true
+    enabled = false # Wyłączone, by nie płacić za stare wersje nadpisanych plików
   }
 }
 
@@ -18,5 +18,5 @@ resource "google_storage_bucket_iam_member" "sa_storage_reader" {
 
 output "seed_bucket_name" {
   value       = google_storage_bucket.seed_bucket.name
-  description = "Bucket name for database test data"
+  description = "Nazwa bucketa na zrzuty bazy danych (seedy)"
 }

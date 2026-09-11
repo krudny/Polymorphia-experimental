@@ -39,7 +39,7 @@ jobs:
               -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO ${{ secrets.DEVELOP_DB_USER }};"
 
             export PGPASSWORD="${{ secrets.STAGING_DB_PASSWORD }}"
-            pg_dump -h localhost -p ${{ secrets.STAGING_DB_PORT }} -U "${{ secrets.STAGING_DB_USER }}" "${{ secrets.STAGING_DB_NAME }}" | \
+            pg_dump -h localhost -p ${{ secrets.STAGING_DB_PORT }} -U "${{ secrets.STAGING_DB_USER }}" --no-owner --no-privileges "${{ secrets.STAGING_DB_NAME }}" | \
               PGPASSWORD="${{ secrets.DEVELOP_DB_PASSWORD }}" psql -h localhost -p ${{ secrets.DEVELOP_DB_PORT }} -U "${{ secrets.DEVELOP_DB_USER }}" -d "${{ secrets.DEVELOP_DB_NAME }}" -v ON_ERROR_STOP=1
 
   migrate:

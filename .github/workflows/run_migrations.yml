@@ -1,4 +1,4 @@
-name: Run Flyway Migrations
+name: "DB | Run Migrations"
 
 on:
   workflow_call:

@@ -1,4 +1,4 @@
-name: Build and Deploy Backend to Develop
+name: "Deploy | Backend to Develop"
 
 on:
   pull_request:

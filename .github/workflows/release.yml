@@ -1,4 +1,4 @@
-name: Release new version
+name: "Release | Publish New Version"
 
 on:
   workflow_dispatch:

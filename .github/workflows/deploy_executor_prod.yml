@@ -1,4 +1,4 @@
-name: Deploy Code Executor to Production
+name: "Deploy | Executor to Production"
 
 on:
   push:

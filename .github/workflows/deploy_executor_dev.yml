@@ -1,4 +1,4 @@
-name: Deploy Code Executor to Dev
+name: "Deploy | Executor to Dev"
 
 on:
   pull_request:

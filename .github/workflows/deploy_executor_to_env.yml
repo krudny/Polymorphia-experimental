@@ -1,4 +1,4 @@
-name: Deploy Code Executor to Environment
+name: "Deploy | Executor to Environment"
 
 on:
   workflow_call:

@@ -1,13 +1,9 @@
 "use client";
 
-import { useRef } from "react";
 import useCourseGroups from "@/hooks/course/course-group/useCourseGroups";
 import Loading from "@/components/loading";
-import XPCardGrid from "@/components/xp-card/XPCardGrid";
-import SectionView from "@/components/section-view/SectionView";
 import "./index.css";
 import { useScaleShow } from "@/animations/ScaleShow";
-import CourseGroupCard from "@/components/course-groups/course-group-card";
 import { useRouter } from "next/navigation";
 import useUserContext, {
   useUserDetails,
@@ -16,11 +12,12 @@ import { CourseGroupTypes } from "@/services/course-groups/types";
 import ErrorComponent from "@/components/error";
 import { Roles } from "@/interfaces/api/user";
 import { SpeedDialKeys } from "@/components/speed-dial/types";
-import { SpeedDial } from "@/components/speed-dial";
+import { LazySpeedDial } from "@/components/speed-dial/lazy";
+import NewCardGridView from "@/components/new-card/grid";
+import NewCardTextAccessory from "@/components/new-card/card/accessory/text";
 
 export default function CourseGroupsPage() {
   const router = useRouter();
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
   const { courseId } = useUserDetails();
   const { userRole } = useUserContext();
   const {
@@ -30,6 +27,7 @@ export default function CourseGroupsPage() {
   } = useCourseGroups({ courseId, type: CourseGroupTypes.INDIVIDUAL_FULL });
 
   const containerRef = useScaleShow(!isLoading);
+  const speedDialRef = useScaleShow(!isLoading);
 
   if (isLoading || !userRole) {
     return <Loading />;
@@ -45,20 +43,37 @@ export default function CourseGroupsPage() {
     router.push(`/course/groups/${id}`);
   };
 
-  const cards = courseGroups.map((courseGroup) =>
-    CourseGroupCard(courseGroup, handleClick)
-  );
-
   return (
-    <SectionView ref={containerRef}>
-      {userRole === Roles.COORDINATOR && (
-        <SpeedDial speedDialKey={SpeedDialKeys.COURSE_GROUP_GRID} />
+    <>
+      {courseGroups.length > 0 ? (
+        <NewCardGridView
+          ref={containerRef}
+          cardConfigurations={courseGroups.map((courseGroup) => ({
+            title: courseGroup.name.toUpperCase(),
+            subtitle: courseGroup.room,
+            color: "sky",
+            rightComponent: () => (
+              <NewCardTextAccessory
+                topText={courseGroup.studentCount.toString()}
+                bottomText="Studentów"
+                backgroundColor="gray"
+              />
+            ),
+            onClick: () => handleClick(courseGroup.id),
+          }))}
+          usesPointsSummary={false}
+        />
+      ) : (
+        <ErrorComponent
+          title="Brak grup"
+          message="W tym kursie nie istnieją jeszcze żadne grupy."
+        />
       )}
-      <div className="course-groups-view">
-        <div className="course-groups-cards" ref={wrapperRef}>
-          <XPCardGrid containerRef={wrapperRef} cards={cards} />
+      {userRole === Roles.COORDINATOR && (
+        <div ref={speedDialRef}>
+          <LazySpeedDial speedDialKey={SpeedDialKeys.COURSE_GROUP_GRID} />
         </div>
-      </div>
-    </SectionView>
+      )}
+    </>
   );
 }

@@ -186,9 +186,7 @@ public class PotentialBonusXpCalculator {
 
         addNewItemsToRespectiveFlatBonusMap(newAssignedItems, oneEventItems, multipleEventsItems);
         Set<AssignedItem> overLimitItems = new HashSet<>();
-        Map<Long, Long> currentCountById = assignedRewardService.countAssignedItemsByReward(assignedItems)
-                .entrySet().stream()
-                .collect(Collectors.toMap(entry -> entry.getKey().getId(), Map.Entry::getValue));
+        Map<Long, Long> currentCountById = assignedRewardService.countAssignedItemsByRewardId(assignedItems);
 
         assignedRewardService.handleReachedLimitItems(
                 newAssignedItems,

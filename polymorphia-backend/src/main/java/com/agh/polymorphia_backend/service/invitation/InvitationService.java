@@ -66,7 +66,7 @@ public class InvitationService {
     public Long inviteUserToCourse(CourseInvitationRequestDto inviteDTO) {
         try {
             Course course = courseService.getCourseById(inviteDTO.getCourseId());
-            accessAuthorizer.authorizeCourseAccess(course);
+            accessAuthorizer.authorizeCurrentUserCourseAccess(course.getId());
 
             validateInvitation(inviteDTO);
             AbstractRoleUser roleUser = createAndSaveRoleUser(inviteDTO);
@@ -89,8 +89,7 @@ public class InvitationService {
         CourseGroup courseGroup = courseGroupRepository.findById(inviteDTO.getCourseGroupId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Grupa kursu nie istnieje."));
 
-        Course course = courseGroup.getCourse();
-        accessAuthorizer.authorizeCourseAccess(course);
+        accessAuthorizer.authorizeCurrentUserCourseAccess(courseGroup.getCourse().getId());
 
         try {
             switch (inviteDTO.getRole()) {

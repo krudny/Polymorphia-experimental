@@ -18,16 +18,13 @@ import static com.agh.polymorphia_backend.controller.ControllerTestUtil.*;
 
 public class SubmissionControllerTest extends ControllerTestConfig {
 
+    private static final List<String> datePropertyNames = List.of("modifiedDate");
     @Value("classpath:responses/submission/submission_requirements.json")
     private Resource submissionRequirementsJson;
-
     @Value("classpath:responses/submission/submission_details.json")
     private Resource submissionDetailsJson;
-
     @Value("classpath:responses/submission/submission_details_after.json")
     private Resource submissionDetailsAfterJson;
-
-    private static final List<String> datePropertyNames = List.of("modifiedDate");
 
     @Test
     void getSubmissionRequirements_ShouldReturnRequirements() throws IOException {

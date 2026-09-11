@@ -1,0 +1,53 @@
+@reference "../../../../styles/globals.css";
+
+.new-card-grid-layout-animation-desktop {
+  @apply h-full w-fit;
+}
+
+.new-card-grid-layout-animation-mobile {
+  @apply h-auto w-full;
+}
+
+.new-card-grid-layout-cards {
+  @apply grid min-w-0 gap-5 transition-opacity custom-ease-with-duration px-3;
+}
+
+.new-card-grid-layout-cards-desktop {
+  @apply h-full content-center justify-start;
+}
+
+.new-card-grid-layout-cards-mobile {
+  @apply h-auto content-start w-full justify-center;
+}
+
+.new-card-grid-layout-desktop-wrapper {
+  @apply flex flex-col gap-5;
+}
+
+.new-card-grid-layout-desktop-top {
+  @apply flex w-full justify-between gap-5;
+}
+
+.new-card-grid-layout-desktop-cards-wrapper {
+  @apply flex-1;
+}
+
+.new-card-grid-layout-desktop-points-summary-wrapper {
+  @apply shrink-0;
+}
+
+.new-card-grid-layout-mobile-wrapper {
+  @apply flex flex-col w-full gap-4 pb-10 items-center;
+}
+
+.new-card-grid-layout-mobile-cards-wrapper {
+  @apply w-full flex justify-center;
+}
+
+.new-card-grid-layout-mobile-pagination-wrapper {
+  @apply flex justify-center w-full;
+}
+
+.new-card-grid-layout-mobile-points-summary-wrapper {
+  @apply flex justify-center w-full h-[600px];
+}

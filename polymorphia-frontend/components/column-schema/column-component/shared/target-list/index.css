@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../../styles/globals.css";
+@reference "../../../../../styles/globals.css";
 
 .target-list-loading {
   @apply relative w-full h-80;

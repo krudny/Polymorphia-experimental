@@ -9,15 +9,15 @@ import {
   SubmissionRequirementResponseDTO,
 } from "@/interfaces/api/grade/submission";
 import { CriterionResponseDTO } from "@/interfaces/api/grade/criteria";
-import { ProjectVariantResponseDTO } from "@/interfaces/api/project";
+import { ProjectVariantWithCategoryNameResponseDTO } from "@/interfaces/api/project";
 
 export interface GradingContextInterface {
   isFiltersLoading: boolean;
   isFiltersError: boolean;
   filters: ReturnType<typeof useFilters<GradingFilterId>>;
-  criteria: CriterionResponseDTO[] | undefined;
-  submissionRequirements: SubmissionRequirementResponseDTO[] | undefined;
-  projectVariants: ProjectVariantResponseDTO[] | undefined;
+  criteria?: CriterionResponseDTO[];
+  submissionRequirements?: SubmissionRequirementResponseDTO[];
+  projectVariants?: ProjectVariantWithCategoryNameResponseDTO[];
   isGeneralDataLoading: boolean;
   isGeneralDataError: boolean;
   isSpecificDataLoading: boolean;
@@ -29,8 +29,4 @@ export interface GradingContextInterface {
 }
 
 export type GradingFilterId =
-  | "searchBy"
-  | "sortOrder"
-  | "sortBy"
-  | "groups"
-  | "gradeStatus";
+  "searchBy" | "sortOrder" | "sortBy" | "groups" | "gradeStatus";

@@ -30,7 +30,7 @@ import {
   DEFAULT_SEARCH_BY,
   DEFAULT_SORT_BY_NAME,
   DEFAULT_SORT_ORDER_ASC,
-} from "@/shared/filter-defaults";
+} from "@/hooks/course/filters/useFilters/utils/filterDefaults";
 import useProjectVariant from "@/hooks/course/projects/useProjectVariant";
 import toast from "react-hot-toast";
 
@@ -48,7 +48,7 @@ export const GradingProvider = ({ children }: { children: ReactNode }) => {
     isError: isFiltersError,
   } = useGradingFilterConfigs(gradableEventId);
 
-  const filters = useFilters<GradingFilterId>(filterConfigs ?? []);
+  const filters = useFilters<GradingFilterId>(filterConfigs ?? [], "grading");
   const searchBy = useMemo(
     () => filters.getAppliedFilterValues("searchBy") ?? DEFAULT_SEARCH_BY,
     [filters]

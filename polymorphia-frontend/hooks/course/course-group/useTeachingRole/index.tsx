@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { UseTeachingRole } from "./types";
+import { UseTeachingRole } from "@/hooks/course/course-group/useTeachingRole/types";
 import { useUserDetails } from "@/hooks/contexts/useUserContext";
 import { CourseService } from "@/services/course";
 

@@ -11,6 +11,7 @@ import ColumnComponent from "@/components/column-schema/column-component";
 import { isTargetSelected } from "@/providers/target/utils/is-selected";
 import { useEventParams } from "@/hooks/app/params/useEventParams";
 import { getTargetListErrorComponent } from "@/components/column-schema/column-component/shared/target-list/utils/get-target-list-error-component";
+import { getKeyForTarget } from "@/providers/grading/utils/getKeyForTarget";
 
 export default function TargetList() {
   const {
@@ -34,8 +35,8 @@ export default function TargetList() {
       : () => (
           <div className="group-list custom-scrollbar">
             {targets.length === 0 && getTargetListErrorComponent(eventType)}
-            {targets.map((target, targetIndex) => (
-              <Fragment key={targetIndex}>
+            {targets.map((target) => (
+              <Fragment key={getKeyForTarget(target)}>
                 <div className="group-record">
                   {(target.type === TargetTypes.STUDENT
                     ? [target.student]

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { InviteUserModalProps } from "@/components/speed-dial/modals/invite-user/types";
-import ImportCSVModal from "@/components/speed-dial/modals//import-csv";
+import ImportCSVModal from "@/components/speed-dial/modals/file-import/import-csv";
 import {
   ImportCSVTypes,
   InviteSpecificType,

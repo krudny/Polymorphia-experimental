@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../styles/globals.css";
+@reference "../../../../styles/globals.css";
 
 .grade-error {
   @apply flex flex-col gap-2 min-[26rem]:w-96 text-xl 2xl:text-2xl;

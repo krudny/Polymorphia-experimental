@@ -15,4 +15,10 @@ export interface ApiRequestOptions {
   method: HttpMethod;
   headers?: HeadersInit;
   body?: ApiBody;
+  responseType?: ResponseType;
+}
+
+export enum ResponseType {
+  JSON = "json",
+  BLOB = "blob",
 }

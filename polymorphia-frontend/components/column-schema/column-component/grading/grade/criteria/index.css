@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../../../styles/globals.css";
+@reference "../../../../../../styles/globals.css";
 
 .grade-accordion-override {
   @apply gap-y-5;

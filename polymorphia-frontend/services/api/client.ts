@@ -1,7 +1,12 @@
 import { API_HOST } from "@/services/api";
 import { BackendErrorResponse } from "@/interfaces/api/error";
 import { ApiError } from "@/services/api/error";
-import { ApiBody, ApiRequestOptions, HttpMethods } from "@/services/api/types";
+import {
+  ApiBody,
+  ApiRequestOptions,
+  HttpMethods,
+  ResponseType,
+} from "@/services/api/types";
 
 const GENERIC_ERROR_MESSAGE = "Wystąpił nieoczekiwany błąd. Spróbuj ponownie.";
 
@@ -42,6 +47,7 @@ async function request<TResponse>({
   method,
   body,
   headers,
+  responseType = ResponseType.JSON,
 }: ApiRequestOptions): Promise<TResponse> {
   const hasJsonBody = isApiJsonBody(body);
   const url = buildUrl(path);
@@ -79,39 +85,44 @@ async function request<TResponse>({
   }
 
   try {
+    if (responseType === "blob") {
+      return (await response.blob()) as TResponse;
+    }
+
     return (await response.json()) as TResponse;
   } catch {
     throw new ApiError("Niepoprawna odpowiedź serwera.", 500);
   }
 }
 
-function get<TResponse>(path: string, headers?: HeadersInit) {
-  return request<TResponse>({ path, method: HttpMethods.GET, headers });
-}
-
-function post<TResponse = void>(
-  path: string,
-  body?: ApiBody,
-  headers?: HeadersInit
-) {
-  return request<TResponse>({ path, method: HttpMethods.POST, body, headers });
-}
-
-function put<TResponse = void>(
-  path: string,
-  body?: ApiBody,
-  headers?: HeadersInit
-) {
-  return request<TResponse>({ path, method: HttpMethods.PUT, body, headers });
-}
-
-function del(path: string, headers?: HeadersInit): Promise<void> {
-  return request({ path, method: HttpMethods.DELETE, headers });
-}
-
 export const ApiClient = {
-  get,
-  post,
-  put,
-  delete: del,
+  get<TResponse>(path: string, headers?: HeadersInit) {
+    return request<TResponse>({ path, method: HttpMethods.GET, headers });
+  },
+
+  getBlob(path: string, headers?: HeadersInit): Promise<Blob> {
+    return request<Blob>({
+      path,
+      method: HttpMethods.GET,
+      headers,
+      responseType: ResponseType.BLOB,
+    });
+  },
+
+  post<TResponse = void>(path: string, body?: ApiBody, headers?: HeadersInit) {
+    return request<TResponse>({
+      path,
+      method: HttpMethods.POST,
+      body,
+      headers,
+    });
+  },
+
+  put<TResponse = void>(path: string, body?: ApiBody, headers?: HeadersInit) {
+    return request<TResponse>({ path, method: HttpMethods.PUT, body, headers });
+  },
+
+  delete(path: string, body?: ApiBody, headers?: HeadersInit): Promise<void> {
+    return request({ path, method: HttpMethods.DELETE, body, headers });
+  },
 };

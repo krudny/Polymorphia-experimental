@@ -5,17 +5,15 @@ import com.agh.polymorphia_backend.dto.request.course_group.CreateCourseGroupReq
 import com.agh.polymorphia_backend.dto.request.course_group.UpdateCourseGroupRequestDto;
 import com.agh.polymorphia_backend.dto.response.course_groups.CourseGroupsResponseDto;
 import com.agh.polymorphia_backend.dto.response.course_groups.CourseGroupsShortResponseDto;
-import com.agh.polymorphia_backend.dto.response.user.TeachingRoleUserResponseDto;
 import com.agh.polymorphia_backend.model.course.Course;
 import com.agh.polymorphia_backend.model.course.CourseGroup;
 import com.agh.polymorphia_backend.model.course.StudentCourseGroupAssignment;
 import com.agh.polymorphia_backend.model.user.TeachingRoleUser;
-import com.agh.polymorphia_backend.model.user.User;
 import com.agh.polymorphia_backend.model.user.UserType;
 import com.agh.polymorphia_backend.model.user.student.Animal;
 import com.agh.polymorphia_backend.repository.course.CourseGroupRepository;
 import com.agh.polymorphia_backend.repository.course.StudentCourseGroupRepository;
-import com.agh.polymorphia_backend.repository.user.UserRepository;
+import com.agh.polymorphia_backend.repository.project.ProjectGroupRepository;
 import com.agh.polymorphia_backend.repository.user.student.AnimalRepository;
 import com.agh.polymorphia_backend.service.course.CourseService;
 import com.agh.polymorphia_backend.service.mapper.CourseGroupsMapper;
@@ -40,22 +38,22 @@ public class CourseGroupsService {
     private final AccessAuthorizer accessAuthorizer;
     private final CourseGroupsMapper courseGroupsMapper;
     private final CourseService courseService;
-    private final UserRepository userRepository;
     private final AnimalRepository animalRepository;
     private final StudentCourseGroupRepository studentCourseGroupRepository;
+    private final ProjectGroupRepository projectGroupRepository;
 
     public List<String> findAllCourseGroupNames(Long courseId) {
-        accessAuthorizer.authorizeCourseAccess(courseId);
+        accessAuthorizer.authorizeCurrentUserCourseAccess(courseId);
         return courseGroupRepository.findNamesByCourseId(courseId);
     }
 
     public List<CourseGroupsResponseDto> getAllCourseGroups(Long courseId) {
-        accessAuthorizer.authorizeCourseAccess(courseId);
+        accessAuthorizer.authorizeCurrentUserCourseAccess(courseId);
         return findCourseGroups(courseId, null, null);
     }
 
     public List<CourseGroupsShortResponseDto> getAllShortCourseGroups(Long courseId) {
-        accessAuthorizer.authorizeCourseAccess(courseId);
+        accessAuthorizer.authorizeCurrentUserCourseAccess(courseId);
         return findShortCourseGroups(courseId, null, null);
     }
 
@@ -78,7 +76,7 @@ public class CourseGroupsService {
 
     @Transactional
     public void createCourseGroup(CreateCourseGroupRequestDto requestDto) {
-        accessAuthorizer.authorizeCourseAccess(requestDto.getCourseId());
+        accessAuthorizer.authorizeCurrentUserCourseAccess(requestDto.getCourseId());
 
         Course course = courseService.getCourseById(requestDto.getCourseId());
         TeachingRoleUser teachingRoleUser = userService.getTeachingRoleUser(requestDto.getTeachingRoleId(), requestDto.getCourseId());
@@ -102,10 +100,10 @@ public class CourseGroupsService {
     @Transactional
     public void updateCourseGroup(Long courseGroupId, UpdateCourseGroupRequestDto requestDto) {
         CourseGroup courseGroup = getCourseGroupById(courseGroupId);
+        Long courseId = courseGroup.getCourse().getId();
+        accessAuthorizer.authorizeCurrentUserCourseAccess(courseId);
 
-        accessAuthorizer.authorizeCourseAccess(courseGroup.getCourse());
-
-        TeachingRoleUser teachingRoleUser = userService.getTeachingRoleUser(requestDto.getTeachingRoleId(), courseGroup.getCourse().getId());
+        TeachingRoleUser teachingRoleUser = userService.getTeachingRoleUser(requestDto.getTeachingRoleId(), courseId);
 
         courseGroup.setName(requestDto.getName());
         courseGroup.setRoom(requestDto.getRoom());
@@ -143,12 +141,13 @@ public class CourseGroupsService {
 
     @Transactional
     public void deleteCourseGroup(Long courseGroupId) {
+        projectGroupRepository.deleteProjectGroupsByCourseGroupId(courseGroupId);
         animalRepository.deleteAnimalsByCourseGroupId(courseGroupId);
         courseGroupRepository.deleteById(courseGroupId);
     }
 
     private List<CourseGroupsResponseDto> getCourseGroups(Long courseId) {
-        accessAuthorizer.authorizeCourseAccess(courseId);
+        accessAuthorizer.authorizeCurrentUserCourseAccess(courseId);
         Long userId = userService.getCurrentUser().getUser().getId();
         UserType userRole = userService.getCurrentUserRole();
 
@@ -160,7 +159,7 @@ public class CourseGroupsService {
     }
 
     private List<CourseGroupsShortResponseDto> getShortCourseGroups(Long courseId) {
-        accessAuthorizer.authorizeCourseAccess(courseId);
+        accessAuthorizer.authorizeCurrentUserCourseAccess(courseId);
         Long userId = userService.getCurrentUser().getUser().getId();
         UserType userRole = userService.getCurrentUserRole();
 

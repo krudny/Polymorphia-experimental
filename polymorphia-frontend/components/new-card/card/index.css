@@ -1,0 +1,53 @@
+@reference "../../../styles/globals.css";
+
+.new-card {
+  @apply relative w-full flex drop-shadow-sm transition-all overflow-hidden bg-neutral-50 dark:bg-primary-dark;
+}
+
+.new-card-hover {
+  @apply cursor-pointer hover:drop-shadow-xl;
+}
+
+.new-card-regular {
+  @apply select-none;
+}
+
+.new-card-normal-mode {
+  @apply rounded-xl;
+  & h1 {
+    @apply text-[2.5rem];
+  }
+  & h2 {
+    @apply text-[1.5rem];
+  }
+}
+
+.new-card-compact-mode {
+  @apply rounded-lg;
+  & h1 {
+    @apply text-2xl;
+  }
+  & h2 {
+    @apply text-lg;
+  }
+}
+
+.new-card-wrapper {
+  @apply flex flex-1 flex-row w-full;
+}
+
+.new-card-wrapper-locked {
+  @apply grayscale filter;
+}
+
+.new-card-accessory {
+  @apply aspect-square flex-centered h-full shrink-0;
+}
+
+.new-card-middle {
+  @apply flex flex-col justify-center h-full px-5 min-w-0 flex-1;
+}
+
+.new-card-locked-overlay {
+  @apply absolute inset-0 z-10 bg-secondary-gray/70 dark:bg-primary-dark/80 flex-col-centered;
+}

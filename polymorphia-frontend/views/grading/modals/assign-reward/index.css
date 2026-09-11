@@ -1,4 +1,4 @@
-@import "../../../../styles/globals.css";
+@reference "../../../../styles/globals.css";
 
 .assign-reward {
   @apply w-full flex flex-col gap-y-2 text-2xl;

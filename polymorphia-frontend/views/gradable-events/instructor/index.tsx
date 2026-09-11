@@ -1,28 +1,23 @@
 import { useScaleShow } from "@/animations/ScaleShow";
-import XPCardGrid from "@/components/xp-card/XPCardGrid";
-import SectionView from "@/components/section-view/SectionView";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Loading from "@/components/loading";
-import InstructorGradableEventCard from "@/views/gradable-events/instructor/InstructorGradableEventCard";
 import { useEventParams } from "@/hooks/app/params/useEventParams";
 import useInstructorGradableEvents from "@/hooks/course/gradable-event/useInstructorGradableEvents";
 import "./index.css";
 import ErrorComponent from "@/components/error";
-import { Sizes } from "@/interfaces/general";
-import { useMediaQuery } from "react-responsive";
 import { GradableEventDTO } from "@/interfaces/api/gradable_event/types";
+import NewCardTextAccessory from "@/components/new-card/card/accessory/text";
+import NewCardGridView from "@/components/new-card/grid";
 
 export default function InstructorView() {
   const { eventType, eventSectionId } = useEventParams();
   const router = useRouter();
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
   const {
     data: gradableEvents,
     isLoading,
     isError,
   } = useInstructorGradableEvents();
-  const isMd = useMediaQuery({ minWidth: 768 });
 
   const containerRef = useScaleShow(!isLoading);
 
@@ -38,12 +33,17 @@ export default function InstructorView() {
     return <Loading />;
   }
 
-  if (isError) {
+  if (isError || !gradableEvents) {
     return <ErrorComponent message="Nie udało się załadować wydarzeń." />;
   }
 
-  if (!gradableEvents || gradableEvents.length === 0) {
-    return <div>No gradable events.</div>;
+  if (gradableEvents.length === 0) {
+    return (
+      <ErrorComponent
+        title="Brak wydarzeń"
+        message="W tej sekcji nie ma żadnych wydarzeń."
+      />
+    );
   }
 
   const handleClick = (gradableEvent: GradableEventDTO) => {
@@ -52,22 +52,23 @@ export default function InstructorView() {
     );
   };
 
-  const cards = gradableEvents.map((gradableEvent) => (
-    <InstructorGradableEventCard
-      key={gradableEvent.id}
-      size={isMd ? Sizes.MD : Sizes.SM}
-      gradableEvent={gradableEvent}
-      handleClick={handleClick}
-    />
-  ));
-
   return (
-    <SectionView ref={containerRef}>
-      <div className="instructor-view">
-        <div className="instructor-view-cards" ref={wrapperRef}>
-          <XPCardGrid containerRef={wrapperRef} cards={cards} />
-        </div>
-      </div>
-    </SectionView>
+    <NewCardGridView
+      ref={containerRef}
+      cardConfigurations={gradableEvents.map((gradableEvent) => ({
+        title: gradableEvent.name,
+        subtitle: gradableEvent.topic,
+        rightComponent: () => (
+          <NewCardTextAccessory
+            topText={gradableEvent.ungradedStudents.toString()}
+            bottomText="Nieocenionych"
+            backgroundColor="gray"
+          />
+        ),
+        color: gradableEvent.ungradedStudents === 0 ? "green" : "sky",
+        onClick: () => handleClick(gradableEvent),
+      }))}
+      usesPointsSummary={false}
+    />
   );
 }

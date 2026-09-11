@@ -1,7 +1,6 @@
 package com.agh.polymorphia_backend.service.user;
 
 import com.agh.polymorphia_backend.dto.response.user_context.UserDetailsResponseDto;
-import com.agh.polymorphia_backend.model.course.Course;
 import com.agh.polymorphia_backend.model.user.AbstractRoleUser;
 import com.agh.polymorphia_backend.model.user.User;
 import com.agh.polymorphia_backend.model.user.UserCourseRole;
@@ -53,18 +52,15 @@ public class UserContextService {
     }
 
     public void setPreferredCourseId(Long courseId) {
-        Course course = courseService.getCourseById(courseId);
-
-        if (!accessAuthorizer.authorizePreferredCourseSwitch(course)) {
+        if (!accessAuthorizer.authorizePreferredCourseSwitch(courseId)) {
             return;
         }
-
 
         User user = userService.getCurrentUser().getUser();
         User dbUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new IllegalStateException(USER_NOT_FOUND));
 
-        dbUser.setPreferredCourse(course);
+        dbUser.setPreferredCourse(courseService.getCourseById(courseId));
         userRepository.save(dbUser);
         userService.updateSecurityCredentials(user);
     }

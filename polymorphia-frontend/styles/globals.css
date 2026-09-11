@@ -1,6 +1,4 @@
-@import "tailwindcss";
-
-@tailwind utilities;
+@import "tailwindcss" source("../");
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -53,6 +51,11 @@
     "opsz" 48;
   display: inline-block;
   line-height: 1;
+  /* Nazwa ikony to ligatura zbudowana z MAŁYCH liter. Odziedziczone
+     text-transform (np. uppercase, które MUI Fab wnosi przez
+     theme.typography.button) zamienia "trophy" na "TROPHY", ligatura przestaje
+     matchować i zamiast glifu widać goły tekst. */
+  text-transform: none;
 }
 
 @utility default-colors {
@@ -102,4 +105,12 @@ input[type="number"] {
   -webkit-background-clip: text;
   -webkit-text-fill-color: #d4d4d4;
   transition: background-color 5000s ease-in-out 0s;
+}
+
+@utility selector-background {
+  @apply brightness-95 backdrop-blur-xl bg-cover bg-center bg-fixed;
+}
+
+@utility notification-badge {
+  @apply absolute w-3 h-3 rounded-full bg-primary-error transition-colors custom-ease-with-duration;
 }

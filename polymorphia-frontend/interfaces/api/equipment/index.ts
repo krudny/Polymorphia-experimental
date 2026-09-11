@@ -27,8 +27,7 @@ export interface BasePotentialXpResponseDTO {
   bonusXp: string;
 }
 
-export interface PotentialXpWithLossResponseDTO
-  extends BasePotentialXpResponseDTO {
+export interface PotentialXpWithLossResponseDTO extends BasePotentialXpResponseDTO {
   lossXp: string;
   totalBonusXp: string;
 }
@@ -39,8 +38,7 @@ export interface BaseChestPotentialXpResponseDTO<
   itemDetails: Record<string, P>;
 }
 
-export interface AllChestPotentialXpResponseDTO
-  extends BaseChestPotentialXpResponseDTO<BasePotentialXpResponseDTO> {
+export interface AllChestPotentialXpResponseDTO extends BaseChestPotentialXpResponseDTO<BasePotentialXpResponseDTO> {
   summary: PotentialXpWithLossResponseDTO;
 }
 
@@ -68,5 +66,4 @@ type OnePotentialXpResponseDTOWithType =
   >;
 
 export type ChestPotentialXpResponseDTOWithType =
-  | AllPotentialXpResponseDTOWithType
-  | OnePotentialXpResponseDTOWithType;
+  AllPotentialXpResponseDTOWithType | OnePotentialXpResponseDTOWithType;

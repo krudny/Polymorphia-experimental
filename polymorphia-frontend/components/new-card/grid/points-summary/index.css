@@ -1,0 +1,9 @@
+@reference "../../../../styles/globals.css";
+
+.new-card-points-summary-divider {
+  @apply border-t-2 border-primary-dark dark:border-secondary-light w-full;
+}
+
+.new-card-points-summary {
+  @apply h-full flex flex-col justify-between;
+}

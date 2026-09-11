@@ -28,6 +28,9 @@ initial.user.lastName=
 initial.user.email=
 initial.user.password=
 
+# Initial course config
+initial.course.config=
+
 # Include the message of ResponseStatusException in response
 server.error.include-message=always
 

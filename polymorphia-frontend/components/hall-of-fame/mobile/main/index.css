@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../styles/globals.css";
+@reference "../../../../styles/globals.css";
 
 .hof-mobile {
   @apply w-full px-2 opacity-0 flex flex-col h-full;

@@ -1,10 +1,4 @@
-@import "tailwindcss";
-@import "../../styles/globals.css";
-@tailwind utilities;
-
-@utility selector-background {
-  @apply brightness-95 backdrop-blur-xl bg-cover bg-center bg-fixed;
-}
+@reference "../../styles/globals.css";
 
 .selector-container {
   @apply relative w-full;

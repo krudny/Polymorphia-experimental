@@ -3,7 +3,6 @@ package com.agh.polymorphia_backend.service.gradable_event;
 import com.agh.polymorphia_backend.dto.request.target.TargetRequestDto;
 import com.agh.polymorphia_backend.dto.request.target.TargetType;
 import com.agh.polymorphia_backend.dto.response.event.BaseGradableEventResponseDto;
-import com.agh.polymorphia_backend.model.course.Course;
 import com.agh.polymorphia_backend.model.event_section.EventSectionType;
 import com.agh.polymorphia_backend.model.gradable_event.GradableEvent;
 import com.agh.polymorphia_backend.model.gradable_event.GradableEventScope;
@@ -23,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.agh.polymorphia_backend.service.course.CourseService.COURSE_NOT_FOUND;
 import static com.agh.polymorphia_backend.service.user.UserService.INVALID_ROLE;
 
 @Service
@@ -44,11 +44,13 @@ public class GradableEventService {
 
     public GradableEvent getGradableEventById(Long gradableEventId) {
         UserType userRole = userService.getCurrentUserRole();
-        GradableEvent gradableEvent = fetchGradableEvent(gradableEventId);
+        GradableEvent gradableEvent = gradableEventRepository
+                .findById(gradableEventId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, GRADABLE_EVENT_NOT_FOUND));
 
         if (userRole != UserType.INSTRUCTOR && userRole != UserType.COORDINATOR && (gradableEvent.getIsHidden()
             || gradableEvent.getEventSection().getIsHidden())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Wydarzenie nie istnieje.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, GRADABLE_EVENT_NOT_FOUND);
         }
 
         return gradableEvent;
@@ -64,17 +66,17 @@ public class GradableEventService {
         }
     }
 
-    public List<BaseGradableEventResponseDto> getGradableEvents(Long relatedId, GradableEventScope scope, GradableEventSortBy sortBy) {
-        Course course = switch (scope) {
-            case COURSE -> courseService.getCourseById(relatedId);
-            case EVENT_SECTION -> courseService.getCourseByEventSectionId(relatedId);
+    public List<BaseGradableEventResponseDto> getGradableEvents(Long relatedId, GradableEventScope scope, GradableEventSortBy sortBy, Boolean isRoadmap) {
+        Long courseId = switch (scope) {
+            case COURSE -> relatedId;
+            case EVENT_SECTION -> courseService.getCourseIdByEventSectionId(relatedId);
         };
 
-        accessAuthorizer.authorizeCourseAccess(course);
-        UserType userRole = userService.getUserRoleInCourse(course.getId());
+        accessAuthorizer.authorizeCurrentUserCourseAccess(courseId);
+        UserType userRole = userService.getUserRoleInCourse(courseId);
 
         return switch (userRole) {
-            case STUDENT -> getStudentGradableEvents(relatedId, course, scope, sortBy);
+            case STUDENT -> getStudentGradableEvents(relatedId, courseId, scope, sortBy, isRoadmap);
             case INSTRUCTOR, COORDINATOR  -> getTeachingRoleGradableEvents(relatedId, scope, sortBy);
             case UNDEFINED -> throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -83,17 +85,23 @@ public class GradableEventService {
         };
     }
 
+    public Long getCourseIdByGradableEventId(Long gradableEventId) {
+        return gradableEventRepository.getCourseIdByGradableEventId(gradableEventId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, COURSE_NOT_FOUND));
+    }
+
     private List<BaseGradableEventResponseDto> getStudentGradableEvents(
             Long relatedId,
-            Course course,
+            Long courseId,
             GradableEventScope scope,
-            GradableEventSortBy sortBy
+            GradableEventSortBy sortBy,
+            Boolean isRoadmap
     ) {
         Long userId = userService.getCurrentUser().getUserId();
-        Long animalId = animalService.getAnimal(userId, course.getId()).getId();
+        Long animalId = animalService.getAnimalId(userId, courseId);
 
         return gradableEventRepository
-                .findStudentGradableEventsWithDetails(relatedId, animalId, scope.getValue(), sortBy.getValue())
+                .findStudentGradableEventsWithDetails(relatedId, animalId, scope.getValue(), sortBy.getValue(), isRoadmap)
                 .stream()
                 .map(gradableEventMapper::toStudentGradableEventResponseDto)
                 .collect(Collectors.toList());
@@ -112,12 +120,5 @@ public class GradableEventService {
                 .stream()
                 .map(gradableEventMapper::toTeacherRoleGradableEventResponseDto)
                 .collect(Collectors.toList());
-    }
-
-
-    private GradableEvent fetchGradableEvent(Long gradableEventId) {
-        return gradableEventRepository
-                .findById(gradableEventId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, GRADABLE_EVENT_NOT_FOUND));
     }
 }

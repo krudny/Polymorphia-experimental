@@ -100,7 +100,7 @@ class HallOfFameControllerTest extends ControllerTestConfig {
         String actualResponse = postEndpoint("/hall-of-fame", "instructor2@agh.com",
                 "password", 200, Optional.of(requestDto));
 
-        assertJsonEquals(getResource(fileName+"Instructor"), actualResponse);
+        assertJsonEquals(getResource(fileName + "Instructor"), actualResponse);
     }
 
     @Test

@@ -12,16 +12,14 @@ export interface BaseGradableEventResponseDTO {
   isLocked: boolean;
 }
 
-export interface StudentGradableEventResponseDTO
-  extends BaseGradableEventResponseDTO {
+export interface StudentGradableEventResponseDTO extends BaseGradableEventResponseDTO {
   gainedXp: string;
   hasPossibleReward: boolean;
   isGraded: boolean;
   isRewardAssigned: boolean;
 }
 
-export interface TeachingRoleGradableEventResponseDTO
-  extends BaseGradableEventResponseDTO {
+export interface TeachingRoleGradableEventResponseDTO extends BaseGradableEventResponseDTO {
   ungradedStudents: number;
   isLocked: boolean;
   hasPossibleReward: boolean;

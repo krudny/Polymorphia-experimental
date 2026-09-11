@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../styles/globals.css";
+@reference "../../styles/globals.css";
 
 .button-with-border {
   @apply block mx-auto border-2 rounded;
@@ -11,6 +10,11 @@
 }
 
 .button-with-border-light {
+  @apply text-secondary-gray border-secondary-gray hover:bg-secondary-gray hover:text-primary-dark;
+}
+
+.button-with-border-auto {
+  @apply text-primary-dark border-primary-dark hover:bg-primary-dark hover:text-secondary-gray;
   @apply dark:text-secondary-gray dark:border-secondary-gray hover:dark:bg-secondary-gray hover:dark:text-primary-dark;
 }
 

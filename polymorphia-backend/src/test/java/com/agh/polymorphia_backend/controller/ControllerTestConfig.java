@@ -58,6 +58,16 @@ public abstract class ControllerTestConfig extends BaseTest {
         registry.add("spring.mail.properties.mail.smtp.timeout", () -> "1000");
         registry.add("invitation.allow-multiple-emails", () -> "false");
         registry.add("spring.mail.registerUrl", () -> "https://sampleurl.com/registerUrl");
+
+        registry.add("code-executor.base-url", () -> "http://localhost:8100");
+        registry.add("code-executor.read-timeout-seconds", () -> "25");
+        registry.add("code-executor.max-wall-time-limit-ms", () -> "20000");
+
+        registry.add("task.submission.batch-size", () -> "4");
+        registry.add("task.submission.worker-threads", () -> "2");
+        registry.add("task.submission.lease-duration-seconds", () -> "120");
+        registry.add("task.submission.max-processing-attempts", () -> "3");
+        registry.add("task.submission.grading-stale-after-seconds", () -> "60");
     }
 
     @BeforeEach

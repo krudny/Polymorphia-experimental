@@ -12,6 +12,7 @@ export const GENERAL_APPLICATION_ROUTES: TitleRule[] = [
 export const LOGGED_IN_APPLICATION_ROUTES: TitleRule[] = [
   { pattern: /^\/settings$/, useTitleHook: () => "Ustawienia" },
   { pattern: /^\/roadmap$/, useTitleHook: () => "Roadmapa" },
+  { pattern: /^\/tasks$/, useTitleHook: () => "Zadania" },
   { pattern: /^\/profile$/, useTitleHook: () => "Profil" },
   { pattern: /^\/knowledge-base\/rules$/, useTitleHook: () => "Zasady" },
   {

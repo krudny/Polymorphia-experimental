@@ -1,0 +1,21 @@
+@reference "../../../../../styles/globals.css";
+
+.task-result-status-accepted {
+  @apply text-3xl text-primary-success;
+}
+
+.task-result-status-rejected {
+  @apply text-3xl text-primary-error;
+}
+
+.task-result-section-list {
+  @apply flex flex-col gap-4;
+}
+
+.task-result-section-item {
+  @apply flex flex-col gap-2;
+}
+
+.task-result-section-title {
+  @apply text-xl text-secondary-gray;
+}

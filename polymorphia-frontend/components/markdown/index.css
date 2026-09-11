@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../styles/globals.css";
+@reference "../../styles/globals.css";
 
 .markdown {
   @apply w-full relative flex flex-col-centered flex-1 mx-auto z-20;

@@ -43,6 +43,7 @@ class UserContextServiceTest {
     private User user;
     private Student student;
     private Course course;
+    private Long courseId;
 
     @BeforeEach
     void setUp() {
@@ -56,8 +57,9 @@ class UserContextServiceTest {
         student = Student.builder()
                 .user(user)
                 .build();
+        courseId = 10L;
         course = Course.builder()
-                .id(10L)
+                .id(courseId)
                 .build();
     }
 
@@ -96,7 +98,7 @@ class UserContextServiceTest {
     void setPreferredCourseId_shouldUpdatePreferredCourse() {
         // given
         when(courseService.getCourseById(10L)).thenReturn(course);
-        when(accessAuthorizer.authorizePreferredCourseSwitch(course)).thenReturn(true);
+        when(accessAuthorizer.authorizePreferredCourseSwitch(courseId)).thenReturn(true);
         when(userService.getCurrentUser()).thenReturn(student);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
@@ -113,7 +115,7 @@ class UserContextServiceTest {
     void setPreferredCourseId_shouldReturnEarly_whenAccessNotAuthorized() {
         // given
         when(courseService.getCourseById(10L)).thenReturn(course);
-        when(accessAuthorizer.authorizePreferredCourseSwitch(course)).thenReturn(false);
+        when(accessAuthorizer.authorizePreferredCourseSwitch(courseId)).thenReturn(false);
 
         // when
         userContextService.setPreferredCourseId(10L);
@@ -129,7 +131,7 @@ class UserContextServiceTest {
     void setPreferredCourseId_shouldThrowWhenUserNotFound() {
         // when
         when(courseService.getCourseById(10L)).thenReturn(course);
-        when(accessAuthorizer.authorizePreferredCourseSwitch(course)).thenReturn(true);
+        when(accessAuthorizer.authorizePreferredCourseSwitch(courseId)).thenReturn(true);
         when(userService.getCurrentUser()).thenReturn(student);
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 

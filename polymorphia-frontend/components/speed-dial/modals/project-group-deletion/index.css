@@ -1,0 +1,13 @@
+@reference "../../../../styles/globals.css";
+
+.project-group-deletion {
+  @apply flex-col w-full max-w-80;
+
+  h1 {
+    @apply text-3xl mb-5;
+  }
+}
+
+.project-group-deletion-buttons {
+  @apply w-full flex gap-x-4;
+}

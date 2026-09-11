@@ -5,7 +5,7 @@ import useGradingContext from "@/hooks/contexts/useGradingContext";
 import { useMediaQuery } from "react-responsive";
 import { ViewTypes } from "@/interfaces/general";
 import { getSpeedDialKey } from "@/components/speed-dial/util";
-import { SpeedDial } from "@/components/speed-dial";
+import { LazySpeedDial } from "@/components/speed-dial/lazy";
 import { useEventParams } from "@/hooks/app/params/useEventParams";
 import ColumnSchema from "@/components/column-schema";
 import useTargetContext from "@/hooks/contexts/useTargetContext";
@@ -35,7 +35,7 @@ export default function GradingView() {
 
   return (
     <div>
-      <SpeedDial speedDialKey={speedDialKey} />
+      <LazySpeedDial speedDialKey={speedDialKey} />
       <ColumnSchema columns={isXL ? 3 : isMd ? 2 : 1} components={components} />
       <FiltersModal<GradingFilterId>
         filters={filters}

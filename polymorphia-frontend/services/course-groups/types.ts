@@ -14,7 +14,6 @@ export type CourseGroupType =
   (typeof CourseGroupTypes)[keyof typeof CourseGroupTypes];
 
 export type CourseGroupResponse<T extends CourseGroupType> = T extends
-  | typeof CourseGroupTypes.INDIVIDUAL_SHORT
-  | typeof CourseGroupTypes.ALL_SHORT
+  typeof CourseGroupTypes.INDIVIDUAL_SHORT | typeof CourseGroupTypes.ALL_SHORT
   ? CourseGroupsShortResponseDTO[]
   : CourseGroupsResponseDTO[];

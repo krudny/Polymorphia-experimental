@@ -1,7 +1,6 @@
 package com.agh.polymorphia_backend.service.criteria;
 
 import com.agh.polymorphia_backend.dto.response.criteria.CriterionResponseDto;
-import com.agh.polymorphia_backend.model.course.Course;
 import com.agh.polymorphia_backend.model.gradable_event.GradableEvent;
 import com.agh.polymorphia_backend.service.gradable_event.GradableEventService;
 import com.agh.polymorphia_backend.service.mapper.CriterionMapper;
@@ -21,8 +20,7 @@ public class CriteriaService {
 
     public List<CriterionResponseDto> getCriteria(Long gradableEventId) {
         GradableEvent gradableEvent = gradableEventService.getGradableEventById(gradableEventId);
-        Course course = gradableEvent.getEventSection().getCourse();
-        accessAuthorizer.authorizeCourseAccess(course);
+        accessAuthorizer.authorizeCurrentUserCourseAccess(gradableEventService.getCourseIdByGradableEventId(gradableEventId));
 
         return gradableEvent.getCriteria().stream()
                 .map(criterionMapper::toCriterionResponseDto)

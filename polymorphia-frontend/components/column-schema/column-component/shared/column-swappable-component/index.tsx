@@ -4,7 +4,7 @@ import {
   baseSwapAnimationWrapperProps,
   SwapAnimationWrapper,
 } from "@/animations/SwapAnimationWrapper";
-import { getKeyForSelectedTarget } from "@/providers/grading/utils/getKeyForSelectedTarget";
+import { getKeyForTarget } from "@/providers/grading/utils/getKeyForTarget";
 import Loading from "@/components/loading";
 
 export default function ColumnSwappableComponent<T>({
@@ -25,7 +25,7 @@ export default function ColumnSwappableComponent<T>({
     Array.isArray(data) &&
     data.length === 0;
 
-  const targetKey = getKeyForSelectedTarget(selectedTarget);
+  const targetKey = getKeyForTarget(selectedTarget);
   const targetKeySuffix = isDataLoadingUtil
     ? "_loading"
     : isDataErrorUtil

@@ -8,6 +8,7 @@ import { CourseGroupStrategy } from "@/components/speed-dial/strategies/course-g
 import { RulesStrategy } from "@/components/speed-dial/strategies/markdown-view/Rules";
 import { ProfileStrategy } from "@/components/speed-dial/strategies/student/Profile";
 import { CourseGroupGridStrategy } from "@/components/speed-dial/strategies/course-groups/CourseGroupGrid";
+import { ProjectGradingStrategy } from "@/components/speed-dial/strategies/grading/ProjectGrading";
 
 export class SpeedDialStrategyRegistry {
   private strategies = new Map<SpeedDialKey, SpeedDialStrategy>();
@@ -27,7 +28,7 @@ export class SpeedDialStrategyRegistry {
     );
     this.strategies.set(
       SpeedDialKeys.PROJECT_GRADING,
-      new AssignmentGradingStrategy()
+      new ProjectGradingStrategy()
     );
     this.strategies.set(SpeedDialKeys.COURSE_GROUP, new CourseGroupStrategy());
     this.strategies.set(

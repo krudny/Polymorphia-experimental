@@ -1,72 +1,71 @@
-@import "tailwindcss";
-@import "../../../../styles/globals.css";
+@reference "../../../../styles/globals.css";
 
 /* Points summary */
 
 .points-summary {
-    @apply flex gap-10 flex-col pb-5 pt-3 items-center;
-    @apply lg:justify-between lg:items-end lg:h-full lg:pt-0;
-    @apply [@media(max-height:709px)]:gap-5;
-    @apply max-lg:w-full max-lg:px-5;
+  @apply flex gap-10 flex-col pb-5 pt-3 items-center;
+  @apply lg:justify-between lg:items-end lg:h-full lg:pt-0;
+  @apply [@media(max-height:709px)]:gap-5;
+  @apply max-lg:w-full max-lg:px-5;
 }
 
 .points-summary-divider {
-    @apply border-t-2 border-primary-dark dark:border-secondary-light w-full max-w-80 -mt-5 -mb-5;
-    @apply lg:min-w-full lg:max-w-full;
-    @apply [@media(max-height:709px)]:-mt-2.5 [@media(max-height:709px)]:-mb-2.5;
+  @apply border-t-2 border-primary-dark dark:border-secondary-light w-full max-w-80 -mt-5 -mb-5;
+  @apply lg:min-w-full lg:max-w-full;
+  @apply [@media(max-height:709px)]:-mt-2.5 [@media(max-height:709px)]:-mb-2.5;
 }
 
 /* Points Summary Element */
 
 .points-summary-element {
-    @apply flex text-shadow-sm;
+  @apply flex text-shadow-sm;
 }
 
 .points-summary-element-hover {
-    @apply cursor-pointer hover:text-shadow-lg;
+  @apply cursor-pointer hover:text-shadow-lg;
 }
 
 .points-summary-element-vertical {
-    @apply flex-col items-center gap-1;
-    @apply lg:items-end;
+  @apply flex-col items-center gap-1;
+  @apply lg:items-end;
 }
 
 .points-summary-element-horizontal {
-    @apply items-center flex-row gap-5;
-    @apply lg:items-end;
+  @apply items-center flex-row gap-5;
+  @apply lg:items-end;
 }
 
 .points-summary-element h1 {
-    @apply text-5xl text-nowrap;
-    @apply [@media(max-height:709px)]:text-3xl;
-    @apply max-lg:text-4xl;
-    @apply [@media(min-height:960px)]:[@media(min-width:1024px)]:text-6xl;
+  @apply text-5xl text-nowrap;
+  @apply [@media(max-height:709px)]:text-3xl;
+  @apply max-lg:text-4xl;
+  @apply [@media(min-height:960px)]:[@media(min-width:1024px)]:text-6xl;
 }
 
 .points-summary-element-horizontal h1 {
-    @apply text-7xl;
-    @apply [@media(max-height:709px)]:text-5xl;
-    @apply max-lg:text-6xl;
-    @apply [@media(min-height:960px)]:[@media(min-width:1024px)]:text-8xl;
+  @apply text-7xl;
+  @apply [@media(max-height:709px)]:text-5xl;
+  @apply max-lg:text-6xl;
+  @apply [@media(min-height:960px)]:[@media(min-width:1024px)]:text-8xl;
 }
 
 .points-summary-element h2 {
-    @apply text-7xl text-nowrap;
-    @apply [@media(max-height:709px)]:text-5xl;
-    @apply max-lg:text-6xl;
-    @apply [@media(min-height:960px)]:[@media(min-width:1024px)]:text-8xl;
+  @apply text-7xl text-nowrap;
+  @apply [@media(max-height:709px)]:text-5xl;
+  @apply max-lg:text-6xl;
+  @apply [@media(min-height:960px)]:[@media(min-width:1024px)]:text-8xl;
 }
 
 .points-summary-element-header {
-    @apply flex flex-row items-center gap-5;
+  @apply flex flex-row items-center gap-5;
 }
 
 .points-summary-element-header-offset {
-    @apply -ml-[44px];
+  @apply -ml-[44px];
 }
 
 /* Bonus info Modal */
 
 .bonus-info-modal {
-    @apply flex flex-col gap-2;
+  @apply flex flex-col gap-2;
 }

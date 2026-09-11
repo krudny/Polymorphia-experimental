@@ -5,23 +5,21 @@ import com.agh.polymorphia_backend.model.event_section.EventSection;
 import com.agh.polymorphia_backend.model.reward.item.ItemType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @SuperBuilder
 @Table(name = "items")
-@ToString(exclude = {"chests"})
+@ToString(callSuper = true, exclude = {"chests"})
 @Inheritance(strategy = InheritanceType.JOINED)
 @PrimaryKeyJoinColumn(name = "reward_id")
-@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 public abstract class Item extends Reward {
     @NotNull
     @Column(name = "\"limit\"")
@@ -37,7 +35,8 @@ public abstract class Item extends Reward {
             joinColumns = @JoinColumn(name = "item_id"),
             inverseJoinColumns = @JoinColumn(name = "chest_id")
     )
-    private List<Chest> chests;
+    @Builder.Default
+    private List<Chest> chests = new ArrayList<>();
 
     public abstract ItemType getItemType();
 

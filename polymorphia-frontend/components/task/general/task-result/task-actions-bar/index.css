@@ -1,0 +1,9 @@
+@reference "../../../../../styles/globals.css";
+
+.task-result-actions {
+  @apply w-full flex justify-end items-center gap-2 p-3 border-t border-t-primary-light/10 shrink-0;
+}
+
+.task-result-status-rejected {
+  @apply text-3xl text-primary-error;
+}

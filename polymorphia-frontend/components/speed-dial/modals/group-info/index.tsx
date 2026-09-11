@@ -1,6 +1,6 @@
 import Modal from "@/components/modal";
 import { SpeedDialModalProps } from "@/components/speed-dial/modals/types";
-import StudentInfo from "@/shared/student-info/StudentInfo";
+import StudentInfo from "@/components/speed-dial/modals/group-info/student-info/StudentInfo";
 
 export default function GroupModal({ onClosedAction }: SpeedDialModalProps) {
   return (

@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../styles/globals.css";
+@reference "../../../../styles/globals.css";
 
 .create-animal-wrapper {
   @apply min-w-80;

@@ -13,7 +13,7 @@ import {
   DEFAULT_SEARCH_BY,
   DEFAULT_SORT_BY_TOTAL,
   DEFAULT_SORT_ORDER_ASC,
-} from "@/shared/filter-defaults";
+} from "@/hooks/course/filters/useFilters/utils/filterDefaults";
 
 export const CourseGroupsContext = createContext<
   CourseGroupsContextInterface | undefined
@@ -24,7 +24,10 @@ export const CourseGroupsProvider = ({ children }: { children: ReactNode }) => {
   const [gradableEventId, setGradableEventId] = useState<number | null>(null);
   const [areFiltersOpen, setAreFiltersOpen] = useState(false);
   const filterConfigs = useCourseGroupsFilterConfigs();
-  const filters = useFilters<CourseGroupsFilterId>(filterConfigs ?? []);
+  const filters = useFilters<CourseGroupsFilterId>(
+    filterConfigs ?? [],
+    "courseGroups"
+  );
   const sortBy = useMemo(
     () => filters.getAppliedFilterValues("sortBy") ?? DEFAULT_SORT_BY_TOTAL,
     [filters]

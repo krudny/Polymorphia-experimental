@@ -19,6 +19,7 @@ export interface FilterConfig<FilterIdType extends string> {
   min?: number; // defaults to 1
   max?: number; // defaults to 1
   defaultValues?: string[];
+  additionalInfo?: string;
 }
 
 export type FilterState<FilterIdType extends string> = Record<

@@ -1,22 +1,19 @@
 "use client";
 
-import SectionView from "@/components/section-view/SectionView";
 import { useScaleShow } from "@/animations/ScaleShow";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import "./index.css";
-import PointsSummary from "@/components/course/event-section/points-summary/PointsSummary";
-import XPCardGrid from "@/components/xp-card/XPCardGrid";
 import Loading from "@/components/loading";
 import { useRouter } from "next/navigation";
-import StudentGradableEventCard from "@/views/gradable-events/student/StudentGradableEventCard";
 import { useEventParams } from "@/hooks/app/params/useEventParams";
 import useStudentsGradableEvents from "@/hooks/course/gradable-event/useStudentsGradableEvents";
-import { EventTypes, Sizes } from "@/interfaces/general";
+import { EventTypes } from "@/interfaces/general";
 import usePointsSummary from "@/hooks/course/gradable-event/usePointsSummary";
-import GradeModal from "@/components/speed-dial/modals/grade";
 import ErrorComponent from "@/components/error";
 import { GradableEventDTO } from "@/interfaces/api/gradable_event/types";
-import { useMediaQuery } from "react-responsive";
+import NewCardGridView from "@/components/new-card/grid";
+import NewCardPointsAccessory from "@/components/new-card/card/accessory/points";
+import { LazyGradeModal } from "@/components/speed-dial/modals/lazy";
 
 export default function StudentView() {
   const { eventType, eventSectionId } = useEventParams();
@@ -33,11 +30,8 @@ export default function StudentView() {
   const isLoading = areGradableEventsLoading || isPointsSummaryLoading;
   const isError = areGradableEventsError || isPointsSummaryError;
   const router = useRouter();
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
-  const summaryRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useScaleShow(!isLoading);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
-  const isMd = useMediaQuery({ minWidth: 768 });
 
   useEffect(() => {
     if (
@@ -63,12 +57,17 @@ export default function StudentView() {
     return <Loading />;
   }
 
-  if (isError) {
+  if (isError || !gradableEvents || !pointsSummary) {
     return <ErrorComponent message="Nie udało się załadować wydarzeń." />;
   }
 
-  if (!gradableEvents || gradableEvents.length === 0 || !pointsSummary) {
-    return <div>No gradable events.</div>;
+  if (gradableEvents.length === 0) {
+    return (
+      <ErrorComponent
+        title="Brak wydarzeń"
+        message="W tej sekcji nie ma żadnych wydarzeń."
+      />
+    );
   }
 
   const handleClick = (gradableEvent: GradableEventDTO) => {
@@ -85,29 +84,38 @@ export default function StudentView() {
     }
   };
 
-  const cards = gradableEvents.map((gradableEvent) => (
-    <StudentGradableEventCard
-      key={gradableEvent.id}
-      size={isMd ? Sizes.MD : Sizes.SM}
-      gradableEvent={gradableEvent}
-      handleClick={handleClick}
-    />
-  ));
-
   return (
-    <SectionView ref={containerRef}>
-      <div className="student-view">
-        <div className="student-view-cards" ref={wrapperRef}>
-          <XPCardGrid containerRef={wrapperRef} cards={cards} maxColumns={2} />
-        </div>
-        <PointsSummary ref={summaryRef} pointsSummary={pointsSummary} />
-      </div>
+    <>
+      <NewCardGridView
+        ref={containerRef}
+        cardConfigurations={gradableEvents.map((gradableEvent) => ({
+          title: gradableEvent.name,
+          subtitle: gradableEvent.topic,
+          rightComponent: ({ mode }) => (
+            <NewCardPointsAccessory
+              mode={mode}
+              points={gradableEvent.gainedXp}
+              isSumLabelVisible={true}
+              backgroundColor="gray"
+              hasChest={gradableEvent.hasPossibleReward}
+              shouldGrayOutReward={
+                gradableEvent.isGraded && !gradableEvent.isRewardAssigned
+              }
+            />
+          ),
+          color: gradableEvent.gainedXp != undefined ? "green" : "sky",
+          onClick: () => handleClick(gradableEvent),
+          isLocked: gradableEvent.isLocked,
+        }))}
+        usesPointsSummary={true}
+        pointsSummaryConfiguration={pointsSummary}
+      />
       {eventType === EventTypes.TEST && selectedEventId && (
-        <GradeModal
+        <LazyGradeModal
           onClosedAction={() => setSelectedEventId(null)}
           gradableEventIdProp={selectedEventId}
         />
       )}
-    </SectionView>
+    </>
   );
 }

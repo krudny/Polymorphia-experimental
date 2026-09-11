@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../styles/globals.css";
+@reference "../../styles/globals.css";
 
 /* Slider */
 
@@ -77,7 +76,7 @@
 }
 
 .carousel-wrapper {
-  @apply w-full flex-col-centered lg:flex-row 2xl:max-w-[1450px] px-6 gap-x-4;
+  @apply w-full flex-col-centered lg:flex-row 2xl:max-w-362.5 px-6 gap-x-4;
 }
 
 .carousel-item.active {
@@ -99,7 +98,7 @@
 
 .carousel-image-wrapper > div {
   @apply relative w-full max-w-lg aspect-square rounded-3xl;
-  @apply lg:max-w-[400px] xl:max-w-[500px] 2xl:max-w-[600px];
+  @apply lg:max-w-100 xl:max-w-125 2xl:max-w-150;
 }
 
 .carousel-image-wrapper > div > img {
@@ -109,13 +108,13 @@
 .carousel-content-wrapper {
   @apply w-full h-fit flex-col-centered justify-start;
   @apply lg:justify-evenly;
-  @apply lg:min-w-[500px] lg:max-w-[500px];
-  @apply xl:min-w-[700px] xl:max-w-[700px];
+  @apply lg:min-w-125 lg:max-w-125;
+  @apply xl:min-w-175 xl:max-w-175;
   @apply 2xl:max-w-full;
 }
 
 .carousel-content-inner-wrapper {
-  @apply flex flex-col justify-center lg:h-[28rem] xl:h-[32rem] 2xl:h-fit;
+  @apply flex flex-col justify-center lg:h-112 xl:h-128 2xl:h-fit;
 }
 
 .carousel-content {

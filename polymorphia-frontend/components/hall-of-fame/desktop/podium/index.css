@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../styles/globals.css";
+@reference "../../../../styles/globals.css";
 
 .hof-podium-desktop {
   @apply w-full h-fit py-3 grid grid-cols-3 gap-x-3;

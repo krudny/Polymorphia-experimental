@@ -1,0 +1,5 @@
+@reference "../../../../../styles/globals.css";
+
+.task-result-tabs {
+  @apply w-full flex gap-3 flex-wrap items-center;
+}

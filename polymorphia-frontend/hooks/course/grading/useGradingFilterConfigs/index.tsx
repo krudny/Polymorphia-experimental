@@ -85,5 +85,6 @@ export function useGradingFilterConfigs(gradableEventId: number) {
 
       return configs;
     },
+    staleTime: 5 * 60 * 1000,
   });
 }

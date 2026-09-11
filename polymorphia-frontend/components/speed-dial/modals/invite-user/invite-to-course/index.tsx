@@ -14,7 +14,7 @@ import {
 import useInviteUser from "@/hooks/course/invitation/useInviteStudent";
 import Selector from "@/components/selector";
 import { useUserDetails } from "@/hooks/contexts/useUserContext";
-import { isValidRole } from "@/shared/is-valid-role";
+import { isValidRole } from "@/components/speed-dial/modals/invite-user/invite-to-course/utils/isValidRole";
 import { FieldErrorMessage } from "@/components/form/FieldErrorMessage";
 import { InviteUserToCourseModalProps } from "@/components/speed-dial/modals/invite-user/invite-to-course/types";
 

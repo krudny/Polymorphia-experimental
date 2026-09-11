@@ -27,7 +27,7 @@ public class EventSectionService {
     private final UserService userService;
 
     public List<EventSectionResponseDto> getCourseEventSectionsResponseDto(Long courseId) {
-        accessAuthorizer.authorizeCourseAccess(courseId);
+        accessAuthorizer.authorizeCurrentUserCourseAccess(courseId);
 
         return getCourseEventSections(courseId).stream()
                 .map(eventSectionMapper::toEventSectionResponseDto)

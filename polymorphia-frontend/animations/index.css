@@ -1,0 +1,13 @@
+@reference "../styles/globals.css";
+
+.slide-animation-wrapper-container {
+  @apply relative grid grid-cols-1 grid-rows-1 overflow-x-clip overflow-y-visible;
+}
+
+.slide-enter {
+  @apply col-start-1 row-start-1 w-full h-full;
+}
+
+.slide-exit {
+  @apply col-start-1 row-start-1 w-full h-full pointer-events-none;
+}

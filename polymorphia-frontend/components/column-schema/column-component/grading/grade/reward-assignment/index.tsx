@@ -32,7 +32,6 @@ export default function AssignReward({
                   src={`${API_STATIC_URL}/${assignedReward.imageUrl}`}
                   alt={assignedReward.name}
                   fill
-                  priority
                   className="object-cover"
                   sizes="(min-width: 1024px) 25vw, 50vw"
                   onClick={() => {}}

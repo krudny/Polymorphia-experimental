@@ -36,6 +36,9 @@ export default function useDeleteCourseGroup(): UseDeleteCourseGroup {
       queryClient.removeQueries({
         queryKey: ["courseGroupTargets"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["gradingTargets"],
+      });
       closeModal();
       router.push(`/course/groups`);
     },

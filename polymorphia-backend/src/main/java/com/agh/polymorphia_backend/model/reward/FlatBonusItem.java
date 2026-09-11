@@ -6,9 +6,10 @@ import com.agh.polymorphia_backend.model.reward.item.ItemType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
@@ -16,9 +17,10 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "flat_bonus_items")
 @PrimaryKeyJoinColumn(name = "item_id")
-@Data
+@Getter
+@Setter
+@ToString(callSuper = true)
 @SuperBuilder
-@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @NoArgsConstructor
 public class FlatBonusItem extends Item {
     @NotNull

@@ -17,11 +17,10 @@ export interface PointsSummaryElementProps {
   horizontal?: boolean;
 }
 
-export interface BonusInfoModalProps
-  extends Omit<
-    ModalProps,
-    "title" | "isDataPresented" | "children" | "onRequestClose"
-  > {
+export interface BonusInfoModalProps extends Omit<
+  ModalProps,
+  "title" | "isDataPresented" | "children" | "onRequestClose"
+> {
   bonusInfo: PointsSummaryDetailsResponseDTO | null;
 }
 

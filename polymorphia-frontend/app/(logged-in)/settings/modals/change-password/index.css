@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../../styles/globals.css";
+@reference "../../../../../styles/globals.css";
 
 .change-password-form {
   @apply space-y-4 min-w-80;

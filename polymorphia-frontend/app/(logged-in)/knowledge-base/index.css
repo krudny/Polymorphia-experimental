@@ -1,6 +1,5 @@
-@import "tailwindcss";
-@import "../../../styles/globals.css";
+@reference "../../../styles/globals.css";
 
 .knowledge-base-wrapper {
-    @apply w-full flex flex-col min-h-[calc(100dvh-5rem)] relative m-auto 3xl:min-h-[54rem];
+  @apply w-full flex flex-col min-h-[calc(100dvh-5rem)] relative m-auto 3xl:min-h-[54rem];
 }

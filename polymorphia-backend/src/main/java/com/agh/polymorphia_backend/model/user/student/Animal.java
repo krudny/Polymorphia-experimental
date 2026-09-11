@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -37,5 +38,6 @@ public class Animal {
     @ManyToMany(mappedBy = "animals", fetch = FetchType.LAZY)
     @ToString.Exclude
     @JsonIgnore
-    private List<ProjectGroup> projectGroups;
+    @Builder.Default
+    private List<ProjectGroup> projectGroups = new ArrayList<>();
 }

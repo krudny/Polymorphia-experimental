@@ -17,7 +17,7 @@ public class RoadmapService {
     private final GradableEventService gradableEventService;
 
     public List<BaseGradableEventResponseDto> getRoadmap(Long courseId) {
-        accessAuthorizer.authorizeCourseAccess(courseId);
-        return gradableEventService.getGradableEvents(courseId, GradableEventScope.COURSE, GradableEventSortBy.ROADMAP_ORDER_INDEX);
+        accessAuthorizer.authorizeCurrentUserCourseAccess(courseId);
+        return gradableEventService.getGradableEvents(courseId, GradableEventScope.COURSE, GradableEventSortBy.ROADMAP_ORDER_INDEX, true);
     }
 }

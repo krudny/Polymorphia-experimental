@@ -26,13 +26,15 @@ export interface BaseGradeResponseDTO<AssignedRewardType> {
   criteria: CriterionGradeResponseDTO<AssignedRewardType>[];
 }
 
-export interface StudentGradeResponseDTO<AssignedRewardType>
-  extends BaseGradeResponseDTO<AssignedRewardType> {
+export interface StudentGradeResponseDTO<
+  AssignedRewardType,
+> extends BaseGradeResponseDTO<AssignedRewardType> {
   id: number;
 }
 
-export interface GroupGradeResponseDTO<AssignedRewardType>
-  extends BaseGradeResponseDTO<AssignedRewardType> {
+export interface GroupGradeResponseDTO<
+  AssignedRewardType,
+> extends BaseGradeResponseDTO<AssignedRewardType> {
   ids: number[];
 }
 

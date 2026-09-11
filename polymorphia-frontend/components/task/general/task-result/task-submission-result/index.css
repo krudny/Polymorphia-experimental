@@ -1,0 +1,49 @@
+@reference "../../../../../styles/globals.css";
+
+.task-result-submission-loading {
+  @apply h-full flex items-center justify-center text-secondary-gray;
+}
+
+.task-result-submission-details {
+  @apply flex flex-col gap-4;
+}
+
+.task-result-submission-header {
+  @apply flex flex-col gap-1 pb-3 border-b border-white/10;
+}
+
+.task-result-submission-header-main {
+  @apply flex items-center gap-3;
+}
+
+.task-result-status-accepted {
+  @apply text-3xl text-primary-success;
+}
+
+.task-result-status-rejected {
+  @apply text-3xl text-primary-error;
+}
+
+.task-result-submission-passed-count {
+  @apply text-2xl text-secondary-gray;
+}
+
+.task-result-submission-score {
+  @apply text-2xl text-primary-gray;
+}
+
+.task-result-submission-meta {
+  @apply text-lg text-primary-gray flex items-center gap-2;
+}
+
+.task-result-section-list {
+  @apply flex flex-col gap-4;
+}
+
+.task-result-section-item {
+  @apply flex flex-col gap-2;
+}
+
+.task-result-section-title {
+  @apply text-xl text-secondary-gray;
+}

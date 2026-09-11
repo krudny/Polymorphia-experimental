@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../styles/globals.css";
+@reference "../../../../styles/globals.css";
 
 .hof-user-data {
   @apply w-full h-full flex-col-centered ml-3 overflow-hidden;

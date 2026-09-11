@@ -28,9 +28,8 @@ export default function StudentSummary({
             src={`${API_STATIC_URL}/${imageUrl}`}
             alt="Zwierzak użytkownika"
             fill
-            priority
-            fetchPriority="high"
             className="object-cover rounded-lg"
+            sizes="(min-width: 1024px) 25vw, 50vw"
           />
         </div>
         <div className="course-group-student-summary-details">

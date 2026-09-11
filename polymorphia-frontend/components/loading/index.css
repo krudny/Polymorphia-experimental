@@ -1,10 +1,9 @@
-@import "tailwindcss";
-@import "../../styles/globals.css";
+@reference "../../styles/globals.css";
 
 .loading-wrapper {
-    @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1000];
+  @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1000];
 }
 
 .loading-wrapper > div {
-    @apply w-12 h-12 border-4 border-primary-gray border-t-primary-dark rounded-full animate-spin;
+  @apply w-12 h-12 border-4 border-primary-gray border-t-primary-dark rounded-full animate-spin;
 }

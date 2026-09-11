@@ -23,25 +23,25 @@ public class MarkdownService {
     private final AccessAuthorizer accessAuthorizer;
 
     public MarkdownResponseDto getMarkdown(MarkdownType type, Long resourceId) {
-        accessAuthorizer.authorizeCourseAccess(getCourseIdForResourceId(resourceId));
+        accessAuthorizer.authorizeCurrentUserCourseAccess(getCourseIdForResourceId(resourceId));
 
         return getStrategyForType(type).getMarkdown(resourceId);
     }
 
     public SourceUrlMarkdownResponseDto getMarkdownSourceUrl(MarkdownType type, Long resourceId) {
-        accessAuthorizer.authorizeCourseAccess(getCourseIdForResourceId(resourceId));
+        accessAuthorizer.authorizeCurrentUserCourseAccess(getCourseIdForResourceId(resourceId));
 
         return getStrategyForType(type).getMarkdownSourceUrl(resourceId);
     }
 
     public void setMarkdown(MarkdownType type, Long resourceId, String markdown) {
-        accessAuthorizer.authorizeCourseAccess(getCourseIdForResourceId(resourceId));
+        accessAuthorizer.authorizeCurrentUserCourseAccess(getCourseIdForResourceId(resourceId));
 
         getStrategyForType(type).setMarkdown(resourceId, markdown);
     }
 
     public void resetMarkdown(MarkdownType type, Long resourceId) {
-        accessAuthorizer.authorizeCourseAccess(getCourseIdForResourceId(resourceId));
+        accessAuthorizer.authorizeCurrentUserCourseAccess(getCourseIdForResourceId(resourceId));
 
         getStrategyForType(type).resetMarkdown(resourceId);
     }

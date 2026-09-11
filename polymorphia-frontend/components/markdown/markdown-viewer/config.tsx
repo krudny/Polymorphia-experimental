@@ -78,8 +78,7 @@ export const markdownConfig: Components = {
             width={width}
             height={height}
             className="img-markdown-inline"
-            quality={100}
-            priority
+            quality={75}
           />
         </span>
       );
@@ -94,8 +93,7 @@ export const markdownConfig: Components = {
           height={height}
           className="img-markdown"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
-          quality={100}
-          priority
+          quality={75}
         />
       </div>
     );

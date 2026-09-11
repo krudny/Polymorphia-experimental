@@ -1,0 +1,5 @@
+@reference "../../../../../styles/globals.css";
+
+.new-card-image-accessory {
+  @apply w-full h-full relative flex-shrink-0 select-none aspect-square;
+}

@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../styles/globals.css";
+@reference "../../../../styles/globals.css";
 
 .invite-user-wrapper {
   @apply min-w-72 flex flex-col gap-y-2;

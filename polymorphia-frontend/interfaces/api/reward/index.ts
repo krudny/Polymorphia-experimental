@@ -16,8 +16,7 @@ interface BaseRewardResponseDTOWithType<
 }
 
 export type RewardResponseDTO =
-  | ItemResponseDTOWithType
-  | ChestResponseDTOWithType;
+  ItemResponseDTOWithType | ChestResponseDTOWithType;
 
 // Items
 export type ItemBonusType = "FLAT_BONUS" | "PERCENTAGE_BONUS";
@@ -32,8 +31,7 @@ export interface BaseItem extends BaseReward {
 }
 
 export type FlatBonusItemBehavior =
-  | "ONE_EVENT_TRIGGERED"
-  | "MULTIPLE_EVENTS_INSTANT";
+  "ONE_EVENT_TRIGGERED" | "MULTIPLE_EVENTS_INSTANT";
 
 export interface BaseFlatBonusItem extends BaseItem {
   itemBonusType: "FLAT_BONUS";

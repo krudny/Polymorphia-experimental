@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../styles/globals.css";
+@reference "../../../../styles/globals.css";
 
 .submission-error {
   @apply flex flex-col gap-2 min-[26rem]:w-96 sm:w-[430px] text-xl 2xl:text-2xl;

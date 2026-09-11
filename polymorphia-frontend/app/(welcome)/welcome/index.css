@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../styles/globals.css";
+@reference "../../../styles/globals.css";
 
 .welcome-wrapper {
   @apply flex-centered absolute top-0 left-0 min-h-screen w-screen;

@@ -28,6 +28,7 @@ export default function UserSection() {
           priority
           fetchPriority="high"
           className="object-cover rounded-lg"
+          sizes="(max-width: 1024px) 65px, 100px"
         />
       </div>
       <div className="profile-block user-section-content">

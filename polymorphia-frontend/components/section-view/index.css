@@ -1,8 +1,0 @@
-@import "tailwindcss";
-@import "../../styles/globals.css";
-
-.section-view {
-  @apply w-full p-3 flex flex-col flex-1 mx-auto opacity-0;
-  @apply lg:h-full lg:justify-center;
-  @apply 3xl:extra-large-center;
-}

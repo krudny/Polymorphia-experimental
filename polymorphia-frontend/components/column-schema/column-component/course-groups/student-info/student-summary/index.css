@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../../../styles/globals.css";
+@reference "../../../../../../styles/globals.css";
 
 .course-group-student-summary {
   @apply w-full h-fit my-2;

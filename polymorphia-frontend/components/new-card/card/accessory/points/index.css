@@ -1,0 +1,13 @@
+@reference "../../../../../styles/globals.css";
+
+.new-card-points-accessory-view {
+  @apply absolute flex-centered;
+}
+
+.new-card-points-accessory-view-normal {
+  @apply bottom-3 right-3;
+}
+
+.new-card-points-accessory-view-compact {
+  @apply bottom-2 right-2;
+}

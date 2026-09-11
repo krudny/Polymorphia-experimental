@@ -19,12 +19,24 @@ const buttonWithBorder = tv({
     },
     forceDark: {
       true: "button-with-border-dark",
-      false: "button-with-border-dark button-with-border-light",
+      false: "",
+    },
+    forceLight: {
+      true: "button-with-border-light",
+      false: "",
     },
   },
+  compoundVariants: [
+    {
+      forceDark: false,
+      forceLight: false,
+      class: "button-with-border-auto",
+    },
+  ],
   defaultVariants: {
     size: "md",
     forceDark: false,
+    forceLight: false,
   },
 });
 
@@ -35,6 +47,7 @@ export default function ButtonWithBorder({
   size = "md",
   isActive = true,
   forceDark,
+  forceLight,
   icon,
   type = "button",
 }: ButtonWithBorderProps & VariantProps) {
@@ -43,7 +56,7 @@ export default function ButtonWithBorder({
       onClick={onClick}
       type={type}
       className={clsx(
-        buttonWithBorder({ size, isActive, forceDark }),
+        buttonWithBorder({ size, isActive, forceDark, forceLight }),
         icon && "button-use-flex",
         className
       )}

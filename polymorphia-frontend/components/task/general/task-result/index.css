@@ -1,0 +1,9 @@
+@reference "../../../../styles/globals.css";
+
+.task-result-container {
+  @apply flex flex-col h-full;
+}
+
+.task-result-content {
+  @apply flex-1 min-h-0 overflow-y-auto p-4 flex flex-col gap-4;
+}

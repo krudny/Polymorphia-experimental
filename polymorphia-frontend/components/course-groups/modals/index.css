@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../styles/globals.css";
+@reference "../../../styles/globals.css";
 
 .course-group-modal {
   @apply flex flex-col gap-y-3 w-80 md:w-md md:gap-y-4;

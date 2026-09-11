@@ -4,10 +4,12 @@ import com.agh.polymorphia_backend.model.criterion.Criterion;
 import com.agh.polymorphia_backend.model.event_section.EventSection;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -25,6 +27,10 @@ public class GradableEvent {
     @EqualsAndHashCode.Include
     private Long id;
 
+    @NotEmpty
+    @Column(length = 64)
+    private String key;
+
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_section_id")
@@ -36,7 +42,8 @@ public class GradableEvent {
     @OneToMany(mappedBy = "gradableEvent", fetch = FetchType.LAZY)
     @ToString.Exclude
     @JsonIgnore
-    private List<Criterion> criteria;
+    @Builder.Default
+    private List<Criterion> criteria = new ArrayList<>();
 
     @NotNull
     @Column(length = 64)

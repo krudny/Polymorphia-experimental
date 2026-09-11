@@ -1,0 +1,9 @@
+@reference "../../../../styles/globals.css";
+
+.project-group-configuration {
+  @apply flex flex-col w-fit min-[550px]:w-[420px] min-[550px]:max-w-[420px] h-auto max-h-full overflow-hidden;
+}
+
+.project-group-configuration-loading {
+  @apply relative min-h-80;
+}

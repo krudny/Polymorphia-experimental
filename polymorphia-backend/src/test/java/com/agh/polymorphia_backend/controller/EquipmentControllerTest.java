@@ -14,6 +14,8 @@ import java.util.Optional;
 import static com.agh.polymorphia_backend.controller.ControllerTestUtil.*;
 
 public class EquipmentControllerTest extends ControllerTestConfig {
+    private static final List<String> datePropertyNames = List.of("receivedDate", "usedDate");
+
     static {
         Loader.loadNativeLibraries();
     }
@@ -34,8 +36,6 @@ public class EquipmentControllerTest extends ControllerTestConfig {
     private Resource potentialXpALLJson;
     @Value("classpath:responses/equipment/potential_xp_one.json")
     private Resource potentialXpONEJson;
-
-    private static final List<String> datePropertyNames = List.of("receivedDate", "usedDate");
 
     @Test
     @Rollback

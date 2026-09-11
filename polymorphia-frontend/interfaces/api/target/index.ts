@@ -45,8 +45,7 @@ export interface StudentGroupTargetResponseDTO {
 }
 
 export type TargetResponseDTO =
-  | StudentTargetResponseDTO
-  | StudentGroupTargetResponseDTO;
+  StudentTargetResponseDTO | StudentGroupTargetResponseDTO;
 
 export type TargetRequestDTO =
   | { type: typeof TargetTypes.STUDENT; id: number }

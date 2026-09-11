@@ -26,7 +26,7 @@ import {
   DEFAULT_SORT_BY_TOTAL,
   DEFAULT_SORT_ORDER_DESC,
   DEFAULT_GROUPS,
-} from "@/shared/filter-defaults";
+} from "@/hooks/course/filters/useFilters/utils/filterDefaults";
 
 export const HallOfFameContext = createContext<
   HallOfFameContextInterface | undefined
@@ -51,7 +51,10 @@ export const HallOfFameProvider = ({ children }: { children: ReactNode }) => {
     isLoading: isFiltersLoading,
     isError: isFiltersError,
   } = useHallOfFameFilterConfigs(courseId);
-  const filters = useFilters<HallOfFameFilterId>(filterConfigs ?? []);
+  const filters = useFilters<HallOfFameFilterId>(
+    filterConfigs ?? [],
+    "hallOfFame"
+  );
 
   const sortByFilterValues = useMemo(
     () => filters.getAppliedFilterValues("sortBy") ?? DEFAULT_SORT_BY_TOTAL,

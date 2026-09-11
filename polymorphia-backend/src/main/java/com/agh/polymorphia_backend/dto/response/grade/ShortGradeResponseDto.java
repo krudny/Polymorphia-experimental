@@ -19,6 +19,7 @@ public class ShortGradeResponseDto {
     private Boolean isGraded;
 
     @NotNull
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String comment;
 
     private Boolean hasReward;

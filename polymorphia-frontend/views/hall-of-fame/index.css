@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../styles/globals.css";
+@reference "../../styles/globals.css";
 
 .mobile-hall-of-fame {
   @apply w-full flex-col-centered h-[calc(100dvh-5rem)] overflow-y-hidden;

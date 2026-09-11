@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../styles/globals.css";
+@reference "../../styles/globals.css";
 
 .equipment-header {
   @apply text-6xl mb-6 lg:mb-10;

@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../../../styles/globals.css";
+@reference "../../../../../../styles/globals.css";
 
 .comment {
   @apply w-full p-4 text-xl border-3 focus:outline-none rounded-xl default-colors resize-none max-h-72 custom-scrollbar;

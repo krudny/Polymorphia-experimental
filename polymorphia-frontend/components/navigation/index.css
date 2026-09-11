@@ -1,11 +1,4 @@
-@import "tailwindcss";
-@import "../../styles/globals.css";
-
-@tailwind utilities;
-
-@utility notification-badge {
-  @apply absolute w-3 h-3 rounded-full bg-primary-error transition-colors custom-ease-with-duration;
-}
+@reference "../../styles/globals.css";
 
 /* Navigation */
 

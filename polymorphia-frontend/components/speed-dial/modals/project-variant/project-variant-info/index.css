@@ -1,0 +1,5 @@
+@reference "../../../../../styles/globals.css";
+
+.project-variant-info {
+  @apply flex flex-col gap-y-2 min-w-72;
+}

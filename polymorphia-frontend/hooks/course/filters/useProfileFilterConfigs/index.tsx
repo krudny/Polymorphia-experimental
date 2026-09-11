@@ -2,8 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { FilterConfig } from "@/hooks/course/filters/useFilters/types";
 import { useUserDetails } from "@/hooks/contexts/useUserContext";
 import { UseProfileFilterConfigs } from "@/hooks/course/filters/useProfileFilterConfigs/types";
-import { ProfileFilterId } from "@/app/(logged-in)/profile/types";
 import useEventSections from "@/hooks/course/event-section/useEventSections";
+import { ProfileFilterId } from "@/providers/profile/types";
 
 export function useProfileFilterConfigs(): UseProfileFilterConfigs {
   const { courseId } = useUserDetails();

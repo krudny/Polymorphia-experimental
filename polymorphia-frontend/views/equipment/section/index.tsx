@@ -1,4 +1,7 @@
-import { EquipmentSectionProps } from "@/views/equipment/section/types";
+import {
+  EquipmentSectionProps,
+  EquipmentSectionTypes,
+} from "@/views/equipment/section/types";
 import {
   EQUIPMENT_COLS,
   EQUIPMENT_MAX_WIDTH,
@@ -19,11 +22,11 @@ export function EquipmentSection({
   return (
     <section className={`${EQUIPMENT_MAX_WIDTH[columns]} mb-5 mx-auto`}>
       <h1 className="equipment-header">
-        {type === "item" ? "Przedmioty" : "Skrzynki"}
+        {type === EquipmentSectionTypes.ITEM ? "Przedmioty" : "Skrzynki"}
       </h1>
       <div className={`equipment-grid ${EQUIPMENT_COLS[columns]}`}>
         {data.map((reward) => {
-          if (type === "item") {
+          if (type === EquipmentSectionTypes.ITEM) {
             const itemData = reward as EquipmentItemResponseDTO;
 
             return (

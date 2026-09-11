@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../styles/globals.css";
+@reference "../../../styles/globals.css";
 
 .register-wrapper {
   @apply relative flex-centered w-full max-w-xl px-16 text-primary-dark z-50;

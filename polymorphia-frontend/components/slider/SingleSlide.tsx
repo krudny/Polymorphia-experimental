@@ -37,9 +37,7 @@ export default function SingleSlide({
               src={`${API_STATIC_URL}/${slide.imageUrl}`}
               fill
               alt={slide.name}
-              sizes="(max-width: 1024px) 400px, (max-width: 1920px) 50vw"
-              priority
-              fetchPriority="high"
+              sizes="(max-width: 1023px) 512px, (max-width: 1279px) 400px, (max-width: 1535px) 500px, 600px"
             />
           </div>
         </div>

@@ -158,7 +158,7 @@ public class AssignedRewardService {
         if (userRole.equals(UserType.COORDINATOR) || userRole.equals(UserType.INSTRUCTOR)) {
             return false;
         }
-        Long animalId = animalService.getAnimal(studentId, item.getCourse().getId()).getId();
+        Long animalId = animalService.getAnimalId(studentId, item.getCourse().getId());
         return (getCurrentItemCount(animalId, item, Optional.of(criterionIdToIgnore)) + newItemsQuantity) > item.getLimit();
     }
 
@@ -170,8 +170,7 @@ public class AssignedRewardService {
             animalAssignedItems = getAnimalAssignedItems(animalId);
         }
 
-        Map<Reward, Long> currentItemsByReward = countAssignedItemsByReward(animalAssignedItems);
-        return currentItemsByReward.getOrDefault(item, 0L);
+        return countAssignedItemsByRewardId(animalAssignedItems).getOrDefault(item.getId(), 0L);
     }
 
 
@@ -183,6 +182,11 @@ public class AssignedRewardService {
     public Map<Reward, Long> countAssignedItemsByReward(List<AssignedItem> assignedItems) {
         return assignedItems.stream()
                 .collect(Collectors.groupingBy(AssignedItem::getReward, Collectors.counting()));
+    }
+
+    public Map<Long, Long> countAssignedItemsByRewardId(List<AssignedItem> assignedItems) {
+        return assignedItems.stream()
+                .collect(Collectors.groupingBy(item -> item.getReward().getId(), Collectors.counting()));
     }
 
     public <T> void handleReachedLimitItems(

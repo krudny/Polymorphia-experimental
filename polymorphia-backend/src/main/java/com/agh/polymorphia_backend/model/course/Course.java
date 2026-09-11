@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -35,7 +36,8 @@ public class Course {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "course")
     @ToString.Exclude
     @JsonIgnore
-    private List<CourseGroup> courseGroups;
+    @Builder.Default
+    private List<CourseGroup> courseGroups = new ArrayList<>();
 
     @Column(length = 128)
     private String markdownSourceUrl;

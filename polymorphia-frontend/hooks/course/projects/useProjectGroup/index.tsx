@@ -16,6 +16,8 @@ export function useProjectGroup(): UseProjectGroup {
       gradableEventId !== undefined &&
       gradableEventId !== null &&
       eventType === EventTypes.PROJECT,
+
+    staleTime: 5 * 60 * 1000,
   });
 
   return { data, isLoading, isError };

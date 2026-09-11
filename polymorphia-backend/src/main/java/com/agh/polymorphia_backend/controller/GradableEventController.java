@@ -29,7 +29,7 @@ public class GradableEventController {
     @GetMapping()
     @PreAuthorize("hasAnyAuthority('STUDENT', 'INSTRUCTOR', 'COORDINATOR')")
     public ResponseEntity<List<BaseGradableEventResponseDto>> getGradableEvents(@RequestParam Long eventSectionId) {
-        return ResponseEntity.ok(gradableEventService.getGradableEvents(eventSectionId, GradableEventScope.EVENT_SECTION, GradableEventSortBy.ORDER_INDEX));
+        return ResponseEntity.ok(gradableEventService.getGradableEvents(eventSectionId, GradableEventScope.EVENT_SECTION, GradableEventSortBy.ORDER_INDEX, false));
     }
 
     @GetMapping("/points-summary")

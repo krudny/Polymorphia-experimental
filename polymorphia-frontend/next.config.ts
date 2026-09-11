@@ -1,8 +1,11 @@
 import { API_STATIC_HOST_PATTERN } from "./services/api";
 import path from "node:path";
+import withBundleAnalyzer from "@next/bundle-analyzer";
+import type { NextConfig } from "next";
+import { RemotePattern } from "next/dist/shared/lib/image-config";
 
-/** @type {import("next").NextConfig} */
-module.exports = {
+const nextConfig: NextConfig = {
+  reactStrictMode: false,
   async redirects() {
     return [
       {
@@ -13,8 +16,10 @@ module.exports = {
     ];
   },
   images: {
+    qualities: [75],
+    dangerouslyAllowLocalIP: true,
     remotePatterns: [
-      API_STATIC_HOST_PATTERN,
+      API_STATIC_HOST_PATTERN as RemotePattern,
       {
         protocol: "https",
         hostname: "raw.githubusercontent.com",
@@ -28,4 +33,18 @@ module.exports = {
   turbopack: {
     root: path.resolve(__dirname, "./"),
   },
+  experimental: {
+    optimizePackageImports: [
+      "@mui/material",
+      "react-hot-toast",
+      "@tanstack/react-query",
+      "@tanstack/react-form",
+      "gsap",
+      "zod",
+    ],
+  },
 };
+
+export default withBundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+})(nextConfig);

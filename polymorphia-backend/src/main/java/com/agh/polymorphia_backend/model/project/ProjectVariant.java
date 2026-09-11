@@ -17,6 +17,10 @@ public class ProjectVariant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotEmpty
+    @Column(length = 64)
+    private String key;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "project_variant_category_id")
     @NotNull

@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../styles/globals.css";
+@reference "../../../../styles/globals.css";
 
 .hof-pagination {
   @apply w-full h-14 flex items-center text-2xl py-2 lg:px-3;

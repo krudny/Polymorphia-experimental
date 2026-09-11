@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../styles/globals.css";
+@reference "../../styles/globals.css";
 
 .error-component {
   @apply flex-col-centered gap-4 p-8 text-center m-auto w-full max-w-xl;

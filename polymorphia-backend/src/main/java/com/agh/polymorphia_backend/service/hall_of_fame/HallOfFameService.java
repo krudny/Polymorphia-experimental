@@ -67,7 +67,7 @@ public class HallOfFameService {
     }
 
     public HallOfFameResponseDto getHallOfFame(HallOfFameRequestDto requestDto) {
-        accessAuthorizer.authorizeCourseAccess(requestDto.courseId());
+        accessAuthorizer.authorizeCurrentUserCourseAccess(requestDto.courseId());
 
         HallOfFameSortSpec sortSpec = sortSpecResolver.resolve(requestDto);
         Page<HallOfFameEntry> hallOfFameEntryPage = switch (sortSpec) {
@@ -182,7 +182,7 @@ public class HallOfFameService {
     }
 
     public List<HallOfFameRecordDto> getPodium(Long courseId) {
-        accessAuthorizer.authorizeCourseAccess(courseId);
+        accessAuthorizer.authorizeCurrentUserCourseAccess(courseId);
 
         HallOfFameRequestDto requestDto = new HallOfFameRequestDto(
                 courseId,

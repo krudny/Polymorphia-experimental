@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../styles/globals.css";
+@reference "../../styles/globals.css";
 
 .search {
   @apply w-full max-w-40 md:max-w-64 md:min-w-0 flex-centered min-h-full h-full shrink;

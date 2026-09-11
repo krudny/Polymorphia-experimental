@@ -1,9 +1,7 @@
-@import "tailwindcss";
-@import "../../styles/globals.css";
+@reference "../../styles/globals.css";
 
 .main-layout {
-  @apply w-full h-full flex flex-col min-h-[calc(100dvh)] relative overflow-x-hidden custom-scrollbar lg:pr-24;
-  scrollbar-gutter: stable both;
+  @apply w-full h-full flex flex-col min-h-[calc(100dvh)] relative overflow-hidden;
 }
 
 body:has([data-speed-dial-portal="true"]) #main-container {
@@ -19,5 +17,6 @@ body:has([data-speed-dial-portal="true"]) #main-container {
 }
 
 .main-layout-content-wrapper {
-  @apply w-full flex flex-col flex-1 max-lg:mt-20 relative;
+  @apply w-full h-full flex flex-col flex-1 max-lg:mt-20 relative overflow-y-auto custom-scrollbar lg:pr-24;
+  scrollbar-gutter: stable both;
 }

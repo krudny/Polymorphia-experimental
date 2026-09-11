@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../styles/globals.css";
+@reference "../../styles/globals.css";
 
 .background-wrapper {
   @apply fixed inset-0 overflow-auto;

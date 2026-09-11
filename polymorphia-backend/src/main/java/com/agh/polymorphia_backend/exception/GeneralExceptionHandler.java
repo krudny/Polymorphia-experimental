@@ -1,6 +1,7 @@
 package com.agh.polymorphia_backend.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
@@ -12,7 +13,9 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.List;
@@ -77,8 +80,19 @@ public class GeneralExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ProblemDetail> handleUnexpected(Exception ex) {
-        log.error(ex.getMessage());
+    public ResponseEntity<ProblemDetail> handleUnexpected(Exception ex, HttpServletRequest request) throws Exception {
+        Object handler = request.getAttribute(HandlerMapping.BEST_MATCHING_HANDLER_ATTRIBUTE);
+
+        if (handler instanceof HandlerMethod handlerMethod) {
+            if (handlerMethod.hasMethodAnnotation(SkipUnexpectedExceptionHandler.class)) {
+                throw ex;
+            }
+            if (handlerMethod.getBeanType().isAnnotationPresent(SkipUnexpectedExceptionHandler.class)) {
+                throw ex;
+            }
+        }
+
+        log.error("Unexpected error: ", ex);
         return getResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, "Wystąpił nieoczekiwany problem.");
     }
 

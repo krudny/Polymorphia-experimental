@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../styles/globals.css";
+@reference "../../../../styles/globals.css";
 
 .hof-card-desktop-record-wrapper {
   @apply hall-of-fame-record-wrapper h-28 flex justify-between items-center;

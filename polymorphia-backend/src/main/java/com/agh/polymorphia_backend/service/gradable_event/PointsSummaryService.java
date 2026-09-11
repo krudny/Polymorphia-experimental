@@ -1,7 +1,6 @@
 package com.agh.polymorphia_backend.service.gradable_event;
 
 import com.agh.polymorphia_backend.dto.response.reward.points_summary.PointsSummaryResponseDto;
-import com.agh.polymorphia_backend.model.course.Course;
 import com.agh.polymorphia_backend.model.event_section.EventSection;
 import com.agh.polymorphia_backend.model.hall_of_fame.StudentScoreDetail;
 import com.agh.polymorphia_backend.model.reward.assigned.AssignedItem;
@@ -34,11 +33,11 @@ public class PointsSummaryService {
     public PointsSummaryResponseDto getPointsSummary(Long eventSectionId) {
         EventSection eventSection = eventSectionService.getEventSection(eventSectionId);
 
-        Course course = eventSection.getCourse();
-        accessAuthorizer.authorizeCourseAccess(course);
+        Long courseId = eventSection.getCourse().getId();
+        accessAuthorizer.authorizeCurrentUserCourseAccess(courseId);
 
         Long userId = userService.getCurrentUser().getUserId();
-        Animal animal = animalService.getAnimal(userId, course.getId());
+        Animal animal = animalService.getAnimal(userId, courseId);
 
         StudentScoreDetail scoreDetail = hallOfFameService.getStudentEventSectionScoreDetails(animal.getId(), eventSectionId);
         List<AssignedItem> assignedItems = assignedRewardService.getAnimalEventSectionAssignedItems(animal.getId(), eventSectionId);

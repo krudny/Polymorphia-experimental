@@ -1,0 +1,21 @@
+@reference "../../../styles/globals.css";
+
+.tasks-mobile-group [data-panel] {
+  transition: flex 400ms cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+.task-mobile-panel-container {
+  @apply h-full min-h-0 min-w-0 overflow-hidden rounded-2xl shadow-2xl bg-primary-dark flex flex-col;
+}
+
+.task-mobile-description-content {
+  @apply flex-1 min-h-0 overflow-y-auto p-6 dark:text-secondary-gray;
+}
+
+.task-mobile-separator {
+  @apply h-1 m-1 rounded-full hover:bg-primary-dark/80 transition-colors ease-in;
+}
+
+.task-mobile-panel-content {
+  @apply flex-1 min-h-0;
+}

@@ -1,0 +1,9 @@
+@reference "../../../../../styles/globals.css";
+
+.file-import {
+  @apply min-w-80 flex flex-col gap-y-4;
+}
+
+.file-import-button-wrapper {
+  @apply w-full flex gap-x-4;
+}

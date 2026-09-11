@@ -94,7 +94,7 @@ public class EquipmentService {
             return animalService.validateAndGetAnimalId(courseId);
         } else if (studentId.isPresent() && !UserType.STUDENT.equals(userType)) {
             accessAuthorizer.authorizeStudentDataAccess(courseId, studentId.get());
-            return animalService.getAnimal(studentId.get(), courseId).getId();
+            return animalService.getAnimalId(studentId.get(), courseId);
         }
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, INVALID_ROLE);
     }
@@ -196,9 +196,7 @@ public class EquipmentService {
         List<AssignedItem> newAssignedItems = createNewAssignedItemsFromChest(chest, assignedChest, openDate, animalId);
 
         List<AssignedItem> currentAssignedItems = assignedRewardService.getAnimalAssignedItems(animalId);
-        Map<Long, Long> currentCountById = assignedRewardService.countAssignedItemsByReward(currentAssignedItems)
-                .entrySet().stream()
-                .collect(Collectors.toMap(entry -> entry.getKey().getId(), Map.Entry::getValue));
+        Map<Long, Long> currentCountById = assignedRewardService.countAssignedItemsByRewardId(currentAssignedItems);
         Set<AssignedItem> itemsToRemove = Collections.newSetFromMap(new IdentityHashMap<>());
         assignedRewardService.handleReachedLimitItems(
                 newAssignedItems,
@@ -230,9 +228,7 @@ public class EquipmentService {
     private void setIsLimitReachedForALLChests(List<EquipmentChestResponseDto> assignedChestsResponse, Long animalId) {
         List<AssignedItem> animalAssignedItems = assignedRewardService.getAnimalAssignedItems(animalId);
 
-        Map<Long, Long> currentCountById = assignedRewardService.countAssignedItemsByReward(animalAssignedItems)
-                .entrySet().stream()
-                .collect(Collectors.toMap(entry -> entry.getKey().getId(), Map.Entry::getValue));
+        Map<Long, Long> currentCountById = assignedRewardService.countAssignedItemsByRewardId(animalAssignedItems);
 
         assignedChestsResponse.forEach(assignedChest -> {
             ChestResponseDtoBase chest = (ChestResponseDtoBase) assignedChest.getBase();

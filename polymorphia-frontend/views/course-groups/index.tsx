@@ -1,5 +1,5 @@
 import { useMediaQuery } from "react-responsive";
-import { SpeedDial } from "@/components/speed-dial";
+import { LazySpeedDial } from "@/components/speed-dial/lazy";
 import ColumnSchema from "@/components/column-schema";
 import { SpeedDialKeys } from "@/components/speed-dial/types";
 import { useCourseGroupsStrategy } from "@/hooks/app/strategy/useCourseGroupsStrategy";
@@ -8,7 +8,7 @@ import FiltersModal from "@/components/filters-modals/FiltersModal";
 import useTargetContext from "@/hooks/contexts/useTargetContext";
 import useCourseGroupsContext from "@/hooks/contexts/useCourseGroupsContext";
 import EquipmentModals from "@/components/equipment/modals";
-import GradeModal from "@/components/speed-dial/modals/grade";
+import { LazyGradeModal } from "@/components/speed-dial/modals/lazy";
 
 export default function CourseGroupsView() {
   const isXL = useMediaQuery({ minWidth: "1280px" });
@@ -26,7 +26,7 @@ export default function CourseGroupsView() {
 
   return (
     <div>
-      <SpeedDial speedDialKey={SpeedDialKeys.COURSE_GROUP} />
+      <LazySpeedDial speedDialKey={SpeedDialKeys.COURSE_GROUP} />
       <ColumnSchema columns={isXL ? 3 : isMd ? 2 : 1} components={components} />
       <FiltersModal<CourseGroupsFilterId>
         filters={filters}
@@ -36,7 +36,7 @@ export default function CourseGroupsView() {
       />
       <EquipmentModals targetStudentIdOverride={targetId} />
       {gradableEventId && (
-        <GradeModal
+        <LazyGradeModal
           gradableEventIdProp={gradableEventId}
           onClosedAction={() => setGradableEventId(null)}
           targetStudentIdOverride={targetId}

@@ -40,8 +40,7 @@ export interface BaseUserDetailsDTOWithName extends BaseUserDetails {
   fullName: string;
 }
 
-export interface StudentDetailsDTOWithName
-  extends StudentDetailsDTOWithNullableName {
+export interface StudentDetailsDTOWithName extends StudentDetailsDTOWithNullableName {
   fullName: string;
 }
 
@@ -84,5 +83,4 @@ export interface RegisterRequestDTO {
 }
 
 export type HallOfFameUserDTO =
-  | StudentDetailsDTOWithNullableName
-  | StudentDetailsDTOWithName;
+  StudentDetailsDTOWithNullableName | StudentDetailsDTOWithName;

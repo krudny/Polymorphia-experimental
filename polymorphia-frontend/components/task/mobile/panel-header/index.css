@@ -1,0 +1,13 @@
+@reference "../../../../styles/globals.css";
+
+.task-mobile-header {
+  @apply w-full flex items-center justify-between px-4 h-14 shrink-0 border-b border-white/10 cursor-pointer text-left;
+}
+
+.task-mobile-header-title {
+  @apply text-2xl text-secondary-gray;
+}
+
+.task-mobile-header-chevron {
+  @apply material-symbols text-[26px] text-secondary-gray leading-none select-none;
+}

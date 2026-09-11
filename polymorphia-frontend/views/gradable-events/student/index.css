@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../styles/globals.css";
+@reference "../../../styles/globals.css";
 
 .student-view {
   @apply flex flex-col gap-x-10 overflow-hidden lg:flex-row 2xl:px-10;

@@ -153,8 +153,8 @@ public class CourseServiceTest {
         when(courseRepository.findAll()).thenReturn(List.of(course1, course2));
         when(userCourseRoleRepository.findAllByUserId(USER_ID))
                 .thenReturn(List.of(userCourseRole1, userCourseRole2));
-        when(accessAuthorizer.isCourseAccessAuthorized(abstractRoleUser, course1)).thenReturn(true);
-        when(accessAuthorizer.isCourseAccessAuthorized(abstractRoleUser, course2)).thenReturn(true);
+        when(accessAuthorizer.isCourseAccessAuthorized(abstractRoleUser, course1.getId())).thenReturn(true);
+        when(accessAuthorizer.isCourseAccessAuthorized(abstractRoleUser, course2.getId())).thenReturn(true);
         when(courseMapper.toAvailableCoursesResponseDto(course1, UserType.STUDENT)).thenReturn(dto1);
         when(courseMapper.toAvailableCoursesResponseDto(course2, UserType.COORDINATOR)).thenReturn(dto2);
 
@@ -200,8 +200,8 @@ public class CourseServiceTest {
         when(courseRepository.findAll()).thenReturn(List.of(course1, course2));
         when(userCourseRoleRepository.findAllByUserId(USER_ID))
                 .thenReturn(List.of(userCourseRole1, userCourseRole2));
-        when(accessAuthorizer.isCourseAccessAuthorized(abstractRoleUser, course1)).thenReturn(true);
-        when(accessAuthorizer.isCourseAccessAuthorized(abstractRoleUser, course2)).thenReturn(false);
+        when(accessAuthorizer.isCourseAccessAuthorized(abstractRoleUser, course1.getId())).thenReturn(true);
+        when(accessAuthorizer.isCourseAccessAuthorized(abstractRoleUser, course2.getId())).thenReturn(false);
         when(courseMapper.toAvailableCoursesResponseDto(course1, UserType.STUDENT)).thenReturn(dto1);
 
         // when
@@ -213,9 +213,4 @@ public class CourseServiceTest {
         assertThat(result.getFirst().getId()).isEqualTo(1L);
         assertThat(result.getFirst().getName()).isEqualTo("Sample course 1");
     }
-
-//     @Test
-//     void temporaryFailingTest() {
-//         fail("Test fail for GitHub Actions testing");
-//     }
 }

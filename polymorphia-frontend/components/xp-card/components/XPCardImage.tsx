@@ -10,9 +10,8 @@ export default function XPCardImage({ imageUrl, alt }: XPCardImageProps) {
         src={`${API_STATIC_URL}/${imageUrl}`}
         alt={alt}
         fill
-        priority
-        fetchPriority="high"
         className="object-cover"
+        sizes="200px"
       />
     </div>
   );

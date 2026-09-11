@@ -10,6 +10,7 @@ export default function useSubmissionRequirements() {
     queryKey: ["submissionRequirements", gradableEventId],
     queryFn: () => SubmissionService.getSubmissionRequirements(gradableEventId),
     enabled: eventType !== EventTypes.TEST,
+    staleTime: 5 * 60 * 1000,
   });
 
   return { data, isLoading, isError };

@@ -1,7 +1,6 @@
-@import "tailwindcss";
-@import "../../styles/globals.css";
+@reference "../../styles/globals.css";
 
 .image-badge {
-    @apply absolute bg-secondary-gray/80 flex-col-centered bottom-0 right-0 aspect-square overflow-hidden  bg-clip-padding z-50;
-    @apply dark:bg-secondary-dark;
+  @apply absolute bg-secondary-gray/80 flex-col-centered bottom-0 right-0 aspect-square overflow-hidden  bg-clip-padding z-50;
+  @apply dark:bg-secondary-dark;
 }

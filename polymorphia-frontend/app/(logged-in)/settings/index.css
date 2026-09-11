@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../styles/globals.css";
+@reference "../../../styles/globals.css";
 
 .settings-outer-wrapper {
   @apply py-6 px-10 lg:px-32;

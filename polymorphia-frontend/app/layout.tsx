@@ -5,14 +5,12 @@ import localFont from "next/font/local";
 import { League_Gothic } from "next/font/google";
 import { QueryClient, QueryCache, MutationCache } from "@tanstack/query-core";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { ReactNode, useState } from "react";
+import { ReactNode, useRef } from "react";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
 import { ThemeProvider } from "next-themes";
-import { ThemeProvider as ThemeProviderMui } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { themeConfig } from "@/components/speed-dial/config";
-import BackgroundWrapper from "@/components/background-wrapper/BackgroundWrapper";
+import BackgroundWrapper from "@/components/background-wrapper";
 import { TitleProvider } from "@/providers/title/TitleContext";
 import { GENERAL_APPLICATION_ROUTES } from "@/providers/title/routes";
 import { ApiError } from "@/services/api/error";
@@ -27,7 +25,7 @@ const leagueGothic = League_Gothic({
 const materialSymbols = localFont({
   variable: "--font-family-symbols",
   style: "normal",
-  src: "../node_modules/material-symbols/material-symbols-rounded.woff2",
+  src: "../public/fonts/material-symbols-subset.woff2",
   display: "block",
   weight: "100 700",
 });
@@ -38,10 +36,34 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   const router = useRouter();
+  const queryClientRef = useRef<QueryClient | null>(null);
 
-  const handleApiError = (error: Error) => {
+  if (!queryClientRef.current) {
+    queryClientRef.current = new QueryClient({
+      queryCache: new QueryCache({
+        onError: (error) => {
+          void handleApiError(error);
+        },
+      }),
+      mutationCache: new MutationCache({
+        onError: (error) => {
+          void handleApiError(error);
+        },
+      }),
+    });
+  }
+
+  const queryClient = queryClientRef.current;
+
+  const handleApiError = async (error: Error) => {
     if (!(error instanceof ApiError)) {
       return;
+    }
+
+    const currentQueryClient = queryClientRef.current;
+    if (currentQueryClient && (error.status === 401 || error.status === 503)) {
+      await currentQueryClient.cancelQueries({ predicate: () => true });
+      await currentQueryClient.resetQueries({ predicate: () => true });
     }
 
     if (error.status === 401) {
@@ -70,22 +92,6 @@ export default function RootLayout({
     });
   };
 
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        queryCache: new QueryCache({
-          onError: (error) => {
-            handleApiError(error);
-          },
-        }),
-        mutationCache: new MutationCache({
-          onError: (error) => {
-            handleApiError(error);
-          },
-        }),
-      })
-  );
-
   return (
     <html lang="pl" className="overflow-hidden" suppressHydrationWarning>
       <head>
@@ -95,23 +101,21 @@ export default function RootLayout({
       <body
         className={`${leagueGothic.className} ${leagueGothic.variable} ${materialSymbols.variable} text-primary-dark dark:text-secondary-gray overflow-hidden`}
       >
-        <ThemeProviderMui theme={themeConfig}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            storageKey="theme"
-          >
-            <TitleProvider routes={GENERAL_APPLICATION_ROUTES}>
-              <QueryClientProvider client={queryClient}>
-                <Toaster toastOptions={{ style: { fontSize: "1.5rem" } }} />
-                <BackgroundWrapper className="hero-background-wrapper">
-                  {children}
-                </BackgroundWrapper>
-              </QueryClientProvider>
-            </TitleProvider>
-          </ThemeProvider>
-        </ThemeProviderMui>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          storageKey="theme"
+        >
+          <TitleProvider routes={GENERAL_APPLICATION_ROUTES}>
+            <QueryClientProvider client={queryClient}>
+              <Toaster toastOptions={{ style: { fontSize: "1.5rem" } }} />
+              <BackgroundWrapper className="hero-background-wrapper">
+                {children}
+              </BackgroundWrapper>
+            </QueryClientProvider>
+          </TitleProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

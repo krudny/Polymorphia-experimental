@@ -1,14 +1,20 @@
-@import "tailwindcss";
-@import "../../../styles/globals.css";
+@reference "../../../styles/globals.css";
 
 .course-choice-wrapper {
-  @apply flex-col-centered m-auto w-full sm:w-4/5 md:w-xl xl:w-5xl;
+  @apply w-full h-full flex flex-col items-center overflow-hidden pb-12;
 }
 
 .course-choice-text {
-  @apply text-5xl mb-7;
+  @apply w-full flex-centered h-15 shrink-0;
+  h1 {
+    @apply text-4xl;
+  }
 }
 
-.course-choice-logout-wrapper {
-  @apply mt-12 flex justify-center;
+.course-choice-grid {
+  @apply w-full flex-1 flex-centered min-h-0 lg:w-10/12 relative;
+}
+
+.course-choice-logout {
+  @apply shrink-0 pt-4;
 }

@@ -8,7 +8,7 @@ import Loading from "@/components/loading";
 import { useMediaQuery } from "react-responsive";
 import "./styles.css";
 import { useRoadmap } from "@/hooks/course/roadmap/useRoadmap";
-import GradeModal from "@/components/speed-dial/modals/grade";
+import { LazyGradeModal } from "@/components/speed-dial/modals/lazy";
 import ErrorComponent from "@/components/error";
 import useUserContext from "@/hooks/contexts/useUserContext";
 import StudentGradableEventCard from "@/views/gradable-events/student/StudentGradableEventCard";
@@ -70,7 +70,11 @@ export default function Roadmap() {
 
   return (
     <>
-      <div ref={wrapperRef} style={{ height: totalHeight }} className="roadmap">
+      <div
+        ref={wrapperRef}
+        style={{ minHeight: totalHeight }}
+        className="roadmap"
+      >
         <ProgressBar
           minXP={0}
           currentXP={27}
@@ -101,7 +105,7 @@ export default function Roadmap() {
         />
       </div>
       {selectedEventId && (
-        <GradeModal
+        <LazyGradeModal
           gradableEventIdProp={selectedEventId}
           onClosedAction={() => setSelectedEventId(null)}
         />

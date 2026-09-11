@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../styles/globals.css";
+@reference "../../../styles/globals.css";
 
 .notification-card {
   @apply w-full flex items-start mb-3 last:mb-0 gap-3 p-3 bg-neutral-50 dark:bg-primary-dark rounded-xl hover:shadow transition-shadow;

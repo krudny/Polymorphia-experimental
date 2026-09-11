@@ -1,0 +1,17 @@
+@reference "../../../../styles/globals.css";
+
+.task-test-case-container {
+  @apply relative bg-secondary-dark rounded-md border border-white/5 hover:bg-primary-dark transition-all duration-500 ease-in-out p-3.5 overflow-x-auto;
+}
+
+.task-test-case-content {
+  @apply font-mono text-sm text-secondary-gray leading-relaxed m-0 p-0 block pr-8 min-h-[1.25rem];
+}
+
+.task-test-case-copy-button {
+  @apply absolute top-2.5 right-2.5 w-7 h-7 opacity-0 group-hover:opacity-100 transition-all duration-500 ease-in-out rounded border-2 border-secondary-gray text-secondary-gray hover:bg-secondary-gray hover:text-primary-dark flex-centered p-0 cursor-pointer;
+}
+
+.task-test-case-icon {
+  @apply material-symbols text-[16px] leading-none select-none;
+}

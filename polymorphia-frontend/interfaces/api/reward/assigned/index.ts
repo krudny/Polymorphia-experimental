@@ -13,13 +13,11 @@ export interface BaseRewardAssignmentDetails {
   isUsed: boolean;
 }
 
-export interface ItemAssignmentDetailsResponseDTO
-  extends BaseRewardAssignmentDetails {
+export interface ItemAssignmentDetailsResponseDTO extends BaseRewardAssignmentDetails {
   gainedXp?: string; // undefined if item hasn't been used
 }
 
-export interface ChestAssignmentDetailsResponseDTO
-  extends BaseRewardAssignmentDetails {
+export interface ChestAssignmentDetailsResponseDTO extends BaseRewardAssignmentDetails {
   receivedItems?: AssignedItemResponseDTO[]; // undefined if chest hasn't been opened (used)
 }
 
@@ -38,8 +36,7 @@ interface BaseAssignedRewardResponseDTOWithType<
 }
 
 export type AssignedRewardResponseDTO =
-  | AssignedItemResponseDTOWithType
-  | AssignedChestResponseDTOWithType;
+  AssignedItemResponseDTOWithType | AssignedChestResponseDTOWithType;
 
 // Items
 export type AssignedItemResponseDTO = BaseAssignedReward<

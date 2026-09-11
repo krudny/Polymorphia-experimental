@@ -14,6 +14,7 @@ import {
 import useUserContext from "@/hooks/contexts/useUserContext";
 import { useTitle } from "@/hooks/app/title/useTitle";
 import useNotificationContext from "@/hooks/contexts/useNotificationsContext";
+import { useMenuCourseOptionText } from "@/hooks/app/navigation/useMenuCourseOptionText";
 
 export default function Navbar() {
   const { isNavbarExpanded, setIsNavbarExpanded } = useNavigationContext();
@@ -23,6 +24,7 @@ export default function Navbar() {
   const { userRole } = useUserContext();
   const { notificationCount, setIsNotificationModalOpen } =
     useNotificationContext();
+  const courseOptionText = useMenuCourseOptionText(userRole);
 
   useEffect(() => {
     const drawer = drawerRef.current;
@@ -46,7 +48,7 @@ export default function Navbar() {
   const menuItems = useMainMenuItems();
 
   if (eventSections) {
-    updateMenuItems(menuItems, eventSections, userRole);
+    updateMenuItems(menuItems, eventSections, courseOptionText, userRole);
   }
 
   return (

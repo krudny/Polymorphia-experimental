@@ -3,12 +3,21 @@
 import { MenuOption } from "@/components/navigation/types";
 import { EventSectionResponseDTO } from "@/interfaces/api/course";
 import { RefObject } from "react";
+import useUserContext from "@/hooks/contexts/useUserContext";
+import { Role, Roles } from "@/interfaces/api/user";
 
 export function updateMenuItems(
   menuItems: MenuOption[],
   eventSections: EventSectionResponseDTO[],
-  courseOptionText: string
+  courseOptionText: string,
+  userRole: Role
 ): MenuOption[] {
+  const visibleSections = eventSections.filter((section) => {
+    return !(
+      userRole !== "STUDENT" && section.name.toLowerCase().includes("zadania")
+    );
+  });
+
   return menuItems.map((menuOption) => {
     if (menuOption.text !== courseOptionText) {
       return menuOption;
@@ -16,8 +25,8 @@ export function updateMenuItems(
 
     return {
       ...menuOption,
-      link: `course/${eventSections[0].type.toLowerCase()}/${eventSections[0].id}`,
-      subItems: eventSections.map((eventSection) => ({
+      link: `course/${visibleSections[0].type.toLowerCase()}/${visibleSections[0].id}`,
+      subItems: visibleSections.map((eventSection) => ({
         text: eventSection.name,
         link: `course/${eventSection.type.toLowerCase()}/${eventSection.id}`,
       })),

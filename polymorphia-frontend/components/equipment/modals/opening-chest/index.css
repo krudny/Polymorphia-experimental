@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../styles/globals.css";
+@reference "../../../../styles/globals.css";
 
 .opening-chest-modal {
   @apply w-full flex flex-col gap-3 max-h-[60vh] overflow-y-auto p-1;

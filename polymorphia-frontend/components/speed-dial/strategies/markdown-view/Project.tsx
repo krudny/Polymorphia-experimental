@@ -11,21 +11,17 @@ export class ProjectStrategy
     switch (role) {
       case Roles.STUDENT:
         return [
-          this.createSubmissions(),
+          this.createSubmissions(true),
           this.createRewards(),
           this.createProjectVariant(),
           this.createProjectGroup(),
         ];
       case Roles.INSTRUCTOR:
-        return [
-          this.createRedirectToGrading(),
-          this.createProjectGroupPicking(),
-        ];
+        return [this.createRedirectToGrading()];
       case Roles.COORDINATOR:
         return [
           ...this.createEditing(),
           this.createRedirectToGrading(),
-          this.createProjectGroupPicking(),
           this.createMarkdownReset(),
         ];
       default:

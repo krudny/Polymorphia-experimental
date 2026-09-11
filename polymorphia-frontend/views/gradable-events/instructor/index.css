@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../styles/globals.css";
+@reference "../../../styles/globals.css";
 
 .instructor-view {
   @apply flex flex-col lg:flex-col-centered flex-1 gap-x-10 overflow-hidden 2xl:px-10;

@@ -98,7 +98,6 @@ export default function GradeInfo({ grade, criteria }: GradeInfoProps) {
                               src={`${API_STATIC_URL}/${reward.imageUrl}`}
                               alt={reward.name}
                               fill
-                              priority
                               className="object-cover"
                               sizes="(min-width: 1024px) 25vw, 50vw"
                             />

@@ -1,0 +1,21 @@
+@reference "../../../../../styles/globals.css";
+
+.new-card-points-summary-element {
+  @apply w-full flex text-shadow-sm gap-1;
+}
+
+.new-card-points-summary-element-inline {
+  @apply flex-row gap-3;
+}
+
+.new-card-points-summary-element-not-inline {
+  @apply flex-col h-full;
+}
+
+.new-card-points-summary-element-hover {
+  @apply cursor-pointer hover:text-shadow-lg;
+}
+
+.new-card-points-summary-element-content {
+  @apply flex flex-row items-center gap-4;
+}

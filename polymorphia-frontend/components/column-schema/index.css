@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../styles/globals.css";
+@reference "../../styles/globals.css";
 
 .column-schema {
   @apply w-full h-fit px-2 md:h-[calc(100dvh-5rem)] flex justify-center gap-x-4 opacity-0 md:p-4;

@@ -4,7 +4,11 @@ import { ReactNode, useState } from "react";
 import { createPortal } from "react-dom";
 import { useSpeedDialFactory } from "@/hooks/app/strategy/useSpeedDialStrategy";
 import Loading from "@/components/loading";
-import { SpeedDial as SpeedDialMui } from "@mui/material";
+import {
+  SpeedDial as SpeedDialMui,
+  ThemeProvider as ThemeProviderMui,
+} from "@mui/material";
+import { themeConfig } from "@/components/speed-dial/config";
 import { SpeedDialProps } from "@/components/speed-dial/types";
 import { useMediaQuery } from "react-responsive";
 import SpeedDialActionWrapper from "@/components/speed-dial/action-wrapper";
@@ -23,37 +27,39 @@ export function SpeedDial({ speedDialKey }: SpeedDialProps) {
 
   const speedDialContent = (
     <div data-speed-dial-portal="true">
-      <SpeedDialMui
-        ariaLabel="SpeedDial"
-        icon={<span className="material-symbols">add</span>}
-        sx={{
-          position: "fixed",
-          bottom: isMd ? 6 : 10,
-          right: isMd ? 12 : 4,
-          margin: 0,
-        }}
-        FabProps={{
-          style: {
-            backgroundColor: "#262626",
-            color: "#FAFAFA",
-            borderRadius: 8,
-            fontSize: 28,
+      <ThemeProviderMui theme={themeConfig}>
+        <SpeedDialMui
+          ariaLabel="SpeedDial"
+          icon={<span className="material-symbols">add</span>}
+          sx={{
+            position: "fixed",
+            bottom: isMd ? 6 : 10,
+            right: isMd ? 12 : 4,
             margin: 0,
-            ...(isMd ? { display: "none" } : {}),
-          },
-        }}
-        open={isMd ? true : isOpen}
-        onOpen={() => setIsOpen(true)}
-        onClose={() => setIsOpen(false)}
-      >
-        {items.map((item) => (
-          <SpeedDialActionWrapper
-            item={item}
-            setActiveModal={setActiveModal}
-            key={item.id}
-          />
-        ))}
-      </SpeedDialMui>
+          }}
+          FabProps={{
+            style: {
+              backgroundColor: "#262626",
+              color: "#FAFAFA",
+              borderRadius: 8,
+              fontSize: 28,
+              margin: 0,
+              ...(isMd ? { display: "none" } : {}),
+            },
+          }}
+          open={isMd ? true : isOpen}
+          onOpen={() => setIsOpen(true)}
+          onClose={() => setIsOpen(false)}
+        >
+          {items.map((item) => (
+            <SpeedDialActionWrapper
+              item={item}
+              setActiveModal={setActiveModal}
+              key={item.id}
+            />
+          ))}
+        </SpeedDialMui>
+      </ThemeProviderMui>
       {activeModal}
     </div>
   );

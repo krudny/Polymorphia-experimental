@@ -23,6 +23,7 @@ export default function useProjectVariant({
       gradableEventId !== null &&
       target !== null &&
       eventType === EventTypes.PROJECT,
+    staleTime: 5 * 60 * 1000,
   });
 
   return { data, isLoading, isError };

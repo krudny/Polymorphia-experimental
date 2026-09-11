@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../styles/globals.css";
+@reference "../../../../styles/globals.css";
 
 .hof-top-bar {
   @apply flex w-full gap-x-2 justify-between overflow-x-hidden;

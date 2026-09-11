@@ -8,9 +8,12 @@ import {
 import { filterReducer } from "@/hooks/course/filters/useFilters/utils/filterReducer";
 import { getInitialState } from "@/hooks/course/filters/useFilters/utils/getInitialState";
 import { validateFilters } from "@/hooks/course/filters/useFilters/utils/validateFilters";
+import { readFiltersFromLocalStorage } from "@/hooks/course/filters/useFilters/utils/readFiltersFromLocalStorage";
+import { saveFiltersToLocalStorage } from "@/hooks/course/filters/useFilters/utils/saveFiltersToLocalStorage";
 
 export function useFilters<FilterIdType extends string>(
-  configs: FilterConfig<FilterIdType>[]
+  configs: FilterConfig<FilterIdType>[],
+  localStorageKey?: string
 ) {
   const reducer = (
     state: FilterState<FilterIdType>,
@@ -30,13 +33,28 @@ export function useFilters<FilterIdType extends string>(
     if (configs.length > 0) {
       dispatch({ type: FilterActions.RESET });
       setAppliedState(getInitialState<FilterIdType>(configs));
+      if (localStorageKey !== undefined) {
+        const newState = readFiltersFromLocalStorage(
+          appliedState,
+          configs,
+          localStorageKey
+        );
+        if (newState !== null) {
+          setAppliedState(newState);
+          dispatch({ type: FilterActions.SET, state: newState });
+        }
+      }
     }
-  }, [configs]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this effect only on config change or key change.
+  }, [configs, localStorageKey]);
 
   const applyFilters = () => {
     const { valid, errors } = validateFilters(state, configs);
     if (valid) {
       setAppliedState(state);
+      if (localStorageKey !== undefined) {
+        saveFiltersToLocalStorage(state, localStorageKey);
+      }
       return { ok: true };
     }
     return { ok: false, errors };

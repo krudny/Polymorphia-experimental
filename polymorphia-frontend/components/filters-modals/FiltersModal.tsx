@@ -84,22 +84,29 @@ export default function FiltersModal<FilterIdType extends string>({
               id={filterConfig.id}
               title={filterConfig.title}
             >
-              <div className="filters-modal-filter-grid">
-                {filterConfig.options.map((option) => (
-                  <div
-                    key={option.value}
-                    onClick={() => handleSelect(filterConfig.id, option)}
-                    className={`filters-modal-filter-option ${
-                      (getFilterValues(filterConfig.id) ?? []).includes(
-                        option.value
-                      )
-                        ? "filters-modal-filter-option-selected"
-                        : "filters-modal-filter-option-unselected"
-                    }`}
-                  >
-                    {option.label ?? option.value}
-                  </div>
-                ))}
+              <div>
+                <div className="filters-modal-filter-grid">
+                  {filterConfig.options.map((option) => (
+                    <div
+                      key={option.value}
+                      onClick={() => handleSelect(filterConfig.id, option)}
+                      className={`filters-modal-filter-option ${
+                        (getFilterValues(filterConfig.id) ?? []).includes(
+                          option.value
+                        )
+                          ? "filters-modal-filter-option-selected"
+                          : "filters-modal-filter-option-unselected"
+                      }`}
+                    >
+                      {option.label ?? option.value}
+                    </div>
+                  ))}
+                </div>
+                {filterConfig.additionalInfo && (
+                  <h3 className="filters-modal-filter-additional-info">
+                    {filterConfig.additionalInfo}
+                  </h3>
+                )}
               </div>
             </AccordionSection>
           ))}

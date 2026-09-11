@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../styles/globals.css";
+@reference "../../../../styles/globals.css";
 
 .edit-course-group-input {
   @apply w-40 border-b-2 border-primary-dark dark:border-secondary-gray bg-transparent text-center text-2xl pb-1;

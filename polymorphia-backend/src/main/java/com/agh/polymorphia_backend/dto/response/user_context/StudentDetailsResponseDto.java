@@ -21,4 +21,12 @@ public class StudentDetailsResponseDto extends BaseUserDetailsResponseDto {
 
     @NotNull
     private Integer position;
+
+    public StudentDetailsResponseDto(Long id, String fullname, Long courseId, String imageUrl, String animalName, String evolutionStage, String group, Integer position) {
+        super(id, fullname, courseId, imageUrl);
+        this.animalName = animalName;
+        this.evolutionStage = evolutionStage;
+        this.group = group;
+        this.position = position;
+    }
 }

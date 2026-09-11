@@ -17,7 +17,7 @@ export default function HallOfFameImage({
         alt="User profile"
         fill
         className="hof-image"
-        priority
+        sizes="(max-width: 768px) 64px, (max-width: 1920px) 150px, 165px"
       />
       <ImageBadge
         text={position < 10 ? "0" + position : position.toString()}

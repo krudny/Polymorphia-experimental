@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum EventSectionType {
     ASSIGNMENT("assignment"),
     TEST("test"),
-    PROJECT("project");
+    PROJECT("project"),
+    TASK("task");
 
     private final String jsonValue;
 

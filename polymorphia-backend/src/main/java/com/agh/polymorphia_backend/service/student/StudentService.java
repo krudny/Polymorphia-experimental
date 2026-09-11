@@ -40,7 +40,7 @@ public class StudentService {
 
     public List<StudentActivityResponseDto> getStudentActivity(Long studentId, Long courseId) {
         accessAuthorizer.authorizeStudentDataAccess(courseId, studentId);
-        Long animalId = animalService.getAnimal(studentId, courseId).getId();
+        Long animalId = animalService.getAnimalId(studentId, courseId);
         List<StudentActivityProjection> projections = gradeRepository.findStudentActivity(animalId);
         return projections.stream()
                 .map(studentDetailsMapper::studentActivityProjectionToDto)

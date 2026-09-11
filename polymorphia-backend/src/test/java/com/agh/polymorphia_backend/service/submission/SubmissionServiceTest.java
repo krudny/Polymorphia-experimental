@@ -21,13 +21,13 @@ import com.agh.polymorphia_backend.model.user.coordinator.Coordinator;
 import com.agh.polymorphia_backend.model.user.instructor.Instructor;
 import com.agh.polymorphia_backend.model.user.student.Animal;
 import com.agh.polymorphia_backend.model.user.student.Student;
+import com.agh.polymorphia_backend.repository.grade.GradeRepository;
 import com.agh.polymorphia_backend.repository.project.ProjectGroupRepository;
 import com.agh.polymorphia_backend.repository.submission.SubmissionRepository;
 import com.agh.polymorphia_backend.repository.submission.SubmissionRequirementRepository;
 import com.agh.polymorphia_backend.repository.user.role.StudentRepository;
 import com.agh.polymorphia_backend.service.gradable_event.GradableEventService;
 import com.agh.polymorphia_backend.service.mapper.SubmissionMapper;
-import com.agh.polymorphia_backend.service.project.ProjectGroupService;
 import com.agh.polymorphia_backend.service.student.AnimalService;
 import com.agh.polymorphia_backend.service.user.UserService;
 import com.agh.polymorphia_backend.service.validation.AccessAuthorizer;
@@ -65,8 +65,8 @@ class SubmissionServiceTest extends BaseTest {
     @Mock
     private ProjectGroupRepository projectGroupRepository;
 
-    @Spy
-    private ProjectGroupService projectGroupService = new ProjectGroupService(projectGroupRepository);
+    @Mock
+    private GradeRepository gradeRepository;
 
     @Mock
     private UserService userService;
@@ -145,7 +145,7 @@ class SubmissionServiceTest extends BaseTest {
         ).thenReturn(assignment);
         doNothing()
             .when(accessAuthorizer)
-            .authorizeCourseAccess(course.getId());
+            .authorizeCurrentUserCourseAccess(course.getId());
         when(
             submissionRequirementRepository.getSubmissionRequirementsByGradableEvent(
                 assignment
@@ -160,7 +160,7 @@ class SubmissionServiceTest extends BaseTest {
         assertThat(result.get(0).name()).isEqualTo("Req A");
         assertThat(result.get(1).orderIndex()).isEqualTo(2L);
         assertThat(result.get(1).name()).isEqualTo("Req B");
-        verify(accessAuthorizer).authorizeCourseAccess(course.getId());
+        verify(accessAuthorizer).authorizeCurrentUserCourseAccess(course.getId());
     }
 
     @Test
@@ -191,7 +191,7 @@ class SubmissionServiceTest extends BaseTest {
             )
         )
             .when(accessAuthorizer)
-            .authorizeCourseAccess(course.getId());
+            .authorizeCurrentUserCourseAccess(course.getId());
         ResponseStatusException ex = assertThrows(
             ResponseStatusException.class,
             () ->
@@ -208,7 +208,7 @@ class SubmissionServiceTest extends BaseTest {
         ).thenReturn(assignment);
         doNothing()
             .when(accessAuthorizer)
-            .authorizeCourseAccess(course.getId());
+            .authorizeCurrentUserCourseAccess(course.getId());
         when(
             submissionRequirementRepository.getSubmissionRequirementsByGradableEvent(
                 assignment
@@ -265,7 +265,7 @@ class SubmissionServiceTest extends BaseTest {
             assertThat(result).isNotNull();
             assertThat(result).hasSize(1);
             assertThat(result.get(1L).url()).isEqualTo("http://example.com");
-            verify(accessAuthorizer).authorizeCourseAccess(course.getId());
+            verify(accessAuthorizer).authorizeCurrentUserCourseAccess(course.getId());
             verify(gradableEventService).validateTargetGradableEventAccess(target, assignment);
         }
 
@@ -1116,6 +1116,9 @@ class SubmissionServiceTest extends BaseTest {
                 )
             ).thenReturn(Optional.of(projectGroup));
             when(
+                    projectGroupRepository.getStudentsByProjectGroup(projectGroup)
+            ).thenReturn(List.of(student));
+            when(
                 submissionRequirementRepository.getSubmissionRequirementsByGradableEvent(
                     project
                 )
@@ -1187,6 +1190,9 @@ class SubmissionServiceTest extends BaseTest {
                     project.getId()
                 )
             ).thenReturn(Optional.of(projectGroup));
+            when(
+                    projectGroupRepository.getStudentsByProjectGroup(projectGroup)
+            ).thenReturn(List.of(student1, student2));
             when(
                 submissionRequirementRepository.getSubmissionRequirementsByGradableEvent(
                     project
@@ -1284,6 +1290,9 @@ class SubmissionServiceTest extends BaseTest {
                 )
             ).thenReturn(Optional.of(projectGroup));
             when(
+                    projectGroupRepository.getStudentsByProjectGroup(projectGroup)
+            ).thenReturn(List.of(student1, student2));
+            when(
                 submissionRequirementRepository.getSubmissionRequirementsByGradableEvent(
                     project
                 )
@@ -1378,6 +1387,9 @@ class SubmissionServiceTest extends BaseTest {
                 )
             ).thenReturn(Optional.of(projectGroup));
             when(
+                    projectGroupRepository.getStudentsByProjectGroup(projectGroup)
+            ).thenReturn(List.of(student1, student2));
+            when(
                 submissionRequirementRepository.getSubmissionRequirementsByGradableEvent(
                     project
                 )
@@ -1464,6 +1476,9 @@ class SubmissionServiceTest extends BaseTest {
                     instructor.getUserId()
                 )
             ).thenReturn(Optional.of(projectGroup));
+            when(
+                    projectGroupRepository.getStudentsByProjectGroup(projectGroup)
+            ).thenReturn(List.of(student1, student2));
             when(
                 submissionRequirementRepository.getSubmissionRequirementsByGradableEvent(
                     project

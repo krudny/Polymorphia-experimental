@@ -3,10 +3,7 @@ import { HallOfFameResponseDTO } from "@/interfaces/api/hall-of-fame";
 import { Dispatch, RefObject, SetStateAction } from "react";
 
 export type HallOfFameFilterId =
-  | "sortOrder"
-  | "sortBy"
-  | "groups"
-  | "rankingOptions";
+  "sortOrder" | "sortBy" | "groups" | "rankingOptions";
 
 export interface HallOfFameContextInterface {
   filters: ReturnType<typeof useFilters<HallOfFameFilterId>>;

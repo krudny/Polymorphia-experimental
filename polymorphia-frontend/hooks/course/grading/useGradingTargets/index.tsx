@@ -39,6 +39,7 @@ export default function useGradingTargets(
         groups,
         gradeStatus[0]
       ),
+    staleTime: 5 * 60 * 1000,
   });
 
   return { data, isLoading, isError };

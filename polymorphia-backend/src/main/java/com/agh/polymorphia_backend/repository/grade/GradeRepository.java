@@ -1,9 +1,11 @@
 package com.agh.polymorphia_backend.repository.grade;
 
 import com.agh.polymorphia_backend.model.grade.Grade;
+import com.agh.polymorphia_backend.model.project.ProjectGroup;
 import com.agh.polymorphia_backend.repository.grade.projections.StudentActivityProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -47,4 +49,17 @@ public interface GradeRepository extends JpaRepository<Grade, Long> {
         order by g.modified_date desc
     """, nativeQuery = true)
     List<StudentActivityProjection> findStudentActivity(Long animalId);
+
+    @Query("""                                                                                                                                                                                                                                                                                                                                                                                                                      
+        select case when count(g) > 0 then true else false end
+        from Grade g
+        where g.gradableEvent.id = :#{#projectGroup.project.id}
+            and g.animal.id in (
+              select a.id
+              from ProjectGroup pg
+                   join pg.animals a
+              where pg = :projectGroup
+            )
+      """)
+    boolean hasGroupGrades(@Param("projectGroup") ProjectGroup projectGroup);
 }

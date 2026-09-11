@@ -1,14 +1,13 @@
 package com.agh.polymorphia_backend.service.validation;
 
-import com.agh.polymorphia_backend.model.course.Course;
 import com.agh.polymorphia_backend.model.user.AbstractRoleUser;
 import com.agh.polymorphia_backend.model.user.User;
 import com.agh.polymorphia_backend.model.user.UserCourseRole;
 import com.agh.polymorphia_backend.model.user.UserType;
 import com.agh.polymorphia_backend.model.user.coordinator.Coordinator;
 import com.agh.polymorphia_backend.model.user.instructor.Instructor;
-import com.agh.polymorphia_backend.model.user.student.Animal;
 import com.agh.polymorphia_backend.model.user.student.Student;
+import com.agh.polymorphia_backend.repository.course.CourseRepository;
 import com.agh.polymorphia_backend.repository.user.UserCourseRoleRepository;
 import com.agh.polymorphia_backend.repository.user.role.InstructorRepository;
 import com.agh.polymorphia_backend.repository.user.role.StudentRepository;
@@ -50,6 +49,9 @@ class AccessAuthorizerTest {
     private InstructorRepository instructorRepository;
 
     @Mock
+    private CourseRepository courseRepository;
+
+    @Mock
     private UserCourseRoleRepository userCourseRoleRepository;
 
     @Mock
@@ -64,11 +66,10 @@ class AccessAuthorizerTest {
     @InjectMocks
     private AccessAuthorizer accessAuthorizer;
 
-    @Mock
-    private Course course;
 
     private Student student;
     private User user;
+    private static final Long COURSE_ID = 10L;
 
     private static Stream<AccessAuthorizationScenario> scenariosProvider() {
         return Stream.of(
@@ -86,29 +87,29 @@ class AccessAuthorizerTest {
         user = User.builder().id(1L).build();
         student = Student.builder().user(user).build();
 
-        doReturn(10L).when(course).getId();
         doReturn(authentication).when(securityContext).getAuthentication();
     }
 
     @ParameterizedTest
     @MethodSource("scenariosProvider")
-    void authorizeCourseAccess_unauthorizedUser_throwsForbidden(AccessAuthorizationScenario scenario) {
+    void authorizeCurrentUserCourseAccess_unauthorizedUser_throwsForbidden(AccessAuthorizationScenario scenario) {
         doReturn(scenario.user).when(userService).getCurrentUser();
         doReturn(scenario.role).when(userService).getUserRole(scenario.user);
 
         switch (scenario.role) {
-            case STUDENT -> doReturn(Optional.empty())
+            case STUDENT -> doReturn(false)
                     .when(studentRepository)
-                    .findByUserIdAndCourseIdAndAssignedToCourseGroup(scenario.id, 10L);
-            case INSTRUCTOR -> doReturn(Optional.empty())
+                    .isUserStudentAssignedToCourseGroup(scenario.id, COURSE_ID);
+            case INSTRUCTOR -> doReturn(false)
                     .when(instructorRepository)
-                    .findByUserIdAndCourseId(scenario.id, 10L);
-            case COORDINATOR -> doReturn(Coordinator.builder().user(new User()).build())
-                    .when(course).getCoordinator();
+                    .isUserTeachingRoleUserInCourse(scenario.id, COURSE_ID);
+            case COORDINATOR -> doReturn(false)
+                    .when(courseRepository)
+                    .isUserCoordinatorOfCourse(scenario.id, COURSE_ID);
         }
 
         ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
-                accessAuthorizer.authorizeCourseAccess(course));
+                accessAuthorizer.authorizeCurrentUserCourseAccess(COURSE_ID));
 
         assertEquals(404, ex.getStatusCode().value());
         assertEquals(COURSE_NOT_FOUND, ex.getReason());
@@ -116,22 +117,23 @@ class AccessAuthorizerTest {
 
     @ParameterizedTest
     @MethodSource("scenariosProvider")
-    void authorizeCourseAccess_authorizedUser_noException(AccessAuthorizationScenario scenario) {
+    void authorizeCurrentUserCourseAccess_authorizedUser_noException(AccessAuthorizationScenario scenario) {
         when(userService.getCurrentUser()).thenReturn(scenario.user);
         doReturn(scenario.role).when(userService).getUserRole(scenario.user);
 
         switch (scenario.role) {
-            case STUDENT -> doReturn(Optional.of(new Student()))
+            case STUDENT -> doReturn(true)
                     .when(studentRepository)
-                    .findByUserIdAndCourseIdAndAssignedToCourseGroup(scenario.id, 10L);
-            case INSTRUCTOR -> doReturn(Optional.of(new Instructor()))
+                    .isUserStudentAssignedToCourseGroup(scenario.id, COURSE_ID);
+            case INSTRUCTOR -> doReturn(true)
                     .when(instructorRepository)
-                    .findByUserIdAndCourseId(scenario.id, 10L);
-            case COORDINATOR -> doReturn(scenario.user)
-                    .when(course).getCoordinator();
+                    .isUserTeachingRoleUserInCourse(scenario.id, COURSE_ID);
+            case COORDINATOR -> doReturn(true)
+                    .when(courseRepository)
+                    .isUserCoordinatorOfCourse(scenario.id, COURSE_ID);
         }
 
-        assertDoesNotThrow(() -> accessAuthorizer.authorizeCourseAccess(course));
+        assertDoesNotThrow(() -> accessAuthorizer.authorizeCurrentUserCourseAccess(COURSE_ID));
     }
 
     @ParameterizedTest
@@ -144,15 +146,15 @@ class AccessAuthorizerTest {
                 .role(scenario.role)
                 .build();
 
-        when(userCourseRoleRepository.findByUserIdAndCourseId(scenario.id, 10L))
+        when(userCourseRoleRepository.findByUserIdAndCourseId(scenario.id, COURSE_ID))
                 .thenReturn(Optional.of(userCourseRole));
 
         if (scenario.role == UserType.STUDENT) {
-            when(animalRepository.findByCourseIdAndStudentId(10L, scenario.id))
-                    .thenReturn(Optional.of(mock(Animal.class)));
+            when(animalRepository.existsByCourseIdAndStudentId(COURSE_ID, scenario.id))
+                    .thenReturn(true);
         }
 
-        assertDoesNotThrow(() -> accessAuthorizer.authorizePreferredCourseSwitch(course));
+        assertDoesNotThrow(() -> accessAuthorizer.authorizePreferredCourseSwitch(COURSE_ID));
     }
 
     @ParameterizedTest
@@ -165,14 +167,14 @@ class AccessAuthorizerTest {
                 .role(scenario.role)
                 .build();
 
-        when(userCourseRoleRepository.findByUserIdAndCourseId(scenario.id, 10L))
+        when(userCourseRoleRepository.findByUserIdAndCourseId(scenario.id, COURSE_ID))
                 .thenReturn(Optional.of(userCourseRole));
 
         if (scenario.role == UserType.STUDENT) {
-            when(animalRepository.findByCourseIdAndStudentId(10L, scenario.id))
-                    .thenReturn(Optional.empty());
+            when(animalRepository.existsByCourseIdAndStudentId(COURSE_ID, scenario.id))
+                    .thenReturn(false);
 
-            assertFalse(accessAuthorizer.authorizePreferredCourseSwitch(course));
+            assertFalse(accessAuthorizer.authorizePreferredCourseSwitch(COURSE_ID));
         }
     }
 
@@ -201,12 +203,12 @@ class AccessAuthorizerTest {
     @Test
     void authorizePreferredCourseSwitch_shouldThrowWhenUserCourseRoleNotFound() {
         when(userService.getCurrentUser()).thenReturn(student);
-        when(userCourseRoleRepository.findByUserIdAndCourseId(1L, 10L))
+        when(userCourseRoleRepository.findByUserIdAndCourseId(1L, COURSE_ID))
                 .thenReturn(Optional.empty());
 
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
-                () -> accessAuthorizer.authorizePreferredCourseSwitch(course)
+                () -> accessAuthorizer.authorizePreferredCourseSwitch(COURSE_ID)
         );
 
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());

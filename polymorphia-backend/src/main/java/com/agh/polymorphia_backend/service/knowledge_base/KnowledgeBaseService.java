@@ -2,7 +2,6 @@ package com.agh.polymorphia_backend.service.knowledge_base;
 
 
 import com.agh.polymorphia_backend.dto.response.knowledge_base.KnowledgeBaseResponseDto;
-import com.agh.polymorphia_backend.model.course.Course;
 import com.agh.polymorphia_backend.repository.course.EvolutionStagesRepository;
 import com.agh.polymorphia_backend.repository.reward.ChestRepository;
 import com.agh.polymorphia_backend.repository.reward.ItemRepository;
@@ -56,9 +55,7 @@ public class KnowledgeBaseService {
             Function<Long, List<T>> repositoryFetcher,
             Function<T, KnowledgeBaseResponseDto> mapper
     ) {
-        Course course = courseService.getCourseById(courseId);
-
-        accessAuthorizer.authorizeCourseAccess(course);
+        accessAuthorizer.authorizeCurrentUserCourseAccess(courseId);
 
         return repositoryFetcher.apply(courseId)
                 .stream()

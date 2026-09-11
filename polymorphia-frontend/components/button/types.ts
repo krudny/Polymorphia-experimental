@@ -10,4 +10,5 @@ export type VariantProps = {
   size?: "sm" | "base" | "md" | "lg";
   isActive?: boolean;
   forceDark?: boolean;
+  forceLight?: boolean;
 };

@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../styles/globals.css";
+@reference "../../../styles/globals.css";
 
 .bonus-info-modal {
   @apply flex flex-col gap-2 min-w-80;

@@ -27,5 +27,4 @@ public class TargetListRequestDto {
 
     @NotNull
     private SortOrder sortOrder;
-
 }

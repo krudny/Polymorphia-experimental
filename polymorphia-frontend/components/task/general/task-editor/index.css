@@ -1,0 +1,21 @@
+@reference "../../../../styles/globals.css";
+
+.task-editor-container {
+  @apply flex flex-col h-full;
+}
+
+.task-editor-toolbar {
+  @apply flex items-center gap-2 p-2 shrink-0;
+}
+
+.task-editor-selector {
+  @apply w-32;
+}
+
+.task-editor-content {
+  @apply flex-1 min-h-0;
+}
+
+.task-editor-loading {
+  @apply flex h-full items-center justify-center text-secondary-gray text-sm;
+}

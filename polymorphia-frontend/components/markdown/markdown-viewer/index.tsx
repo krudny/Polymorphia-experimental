@@ -9,8 +9,11 @@ import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 import { useMarkdown } from "@/hooks/course/markdown/useMarkdown";
 import ErrorComponent from "@/components/error";
+import type { MarkdownViewerProps } from "./types";
 
-export default function MarkdownViewer() {
+export default function MarkdownViewer({
+  forceLight = false,
+}: MarkdownViewerProps) {
   const { markdownType } = useMarkdownContext();
   const { data, isLoading, isError } = useMarkdown(markdownType);
   const wrapperRef = useFadeInAnimate(!isLoading && !!data?.markdown);
@@ -33,7 +36,10 @@ export default function MarkdownViewer() {
   }
 
   return (
-    <div className="markdown-viewer" ref={wrapperRef}>
+    <div
+      className={`markdown-viewer ${forceLight ? "markdown-viewer-force-light" : ""}`}
+      ref={wrapperRef}
+    >
       <Markdown
         components={markdownConfig}
         rehypePlugins={[rehypeRaw]}

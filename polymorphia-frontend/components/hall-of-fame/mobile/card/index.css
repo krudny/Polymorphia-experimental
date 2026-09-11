@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../styles/globals.css";
+@reference "../../../../styles/globals.css";
 
 .hof-card-mobile-record-wrapper {
   @apply hall-of-fame-record-wrapper flex flex-col justify-between border-b-6 p-3 gap-y-3;

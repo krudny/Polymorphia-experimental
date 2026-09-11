@@ -15,15 +15,18 @@ export default function AccordionSection({
   const { isOpen, toggle, shouldAnimateInitialOpen } = useAccordionContext();
   const contentRef = useRef<HTMLDivElement>(null);
   const isFirstRender = useRef(true);
+  const isOpenedRef = useRef<boolean | undefined>(undefined);
   const isOpened = isOpen(id);
   useEffect(() => {
     if (contentRef.current) {
       animateAccordion(
         contentRef.current,
         isOpened,
-        isFirstRender.current && !shouldAnimateInitialOpen
+        (isFirstRender.current && !shouldAnimateInitialOpen) ||
+          isOpenedRef.current === isOpened
       );
       isFirstRender.current = false;
+      isOpenedRef.current = isOpened;
     }
   }, [isOpened, shouldAnimateInitialOpen]);
 

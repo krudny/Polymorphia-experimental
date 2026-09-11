@@ -39,8 +39,8 @@ public class CourseService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, COURSE_NOT_FOUND));
     }
 
-    public Course getCourseByEventSectionId(Long eventSectionId) {
-        return eventSectionRepository.findCourseById(eventSectionId)
+    public Long getCourseIdByEventSectionId(Long eventSectionId) {
+        return eventSectionRepository.findCourseIdById(eventSectionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, COURSE_NOT_FOUND));
     }
 
@@ -63,7 +63,7 @@ public class CourseService {
 
         return courses.stream()
                 .filter(course -> courseRoleMap.containsKey(course.getId()))
-                .filter(course -> accessAuthorizer.isCourseAccessAuthorized(abstractRoleUser, course))
+                .filter(course -> accessAuthorizer.isCourseAccessAuthorized(abstractRoleUser, course.getId()))
                 .map(course -> courseMapper.toAvailableCoursesResponseDto(
                         course,
                         courseRoleMap.get(course.getId()).getRole()
@@ -73,7 +73,7 @@ public class CourseService {
     }
 
     public List<TeachingRoleUserResponseDto> getTeachingRoleUsers(Long courseId) {
-        accessAuthorizer.authorizeCourseAccess(courseId);
+        accessAuthorizer.authorizeCurrentUserCourseAccess(courseId);
 
         List<User> users = userRepository.findAllTeachingRoleUsers();
 

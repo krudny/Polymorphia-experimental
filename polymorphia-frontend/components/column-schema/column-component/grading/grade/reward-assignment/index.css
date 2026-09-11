@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../../../styles/globals.css";
+@reference "../../../../../../styles/globals.css";
 
 .grade-assign-reward {
   @apply grid grid-cols-3 gap-4 w-full;

@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import "../../../../../styles/globals.css";
+@reference "../../../../../styles/globals.css";
 
 .course-group-student-info-grid {
   @apply w-full grid grid-cols-3 gap-3;

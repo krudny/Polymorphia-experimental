@@ -1,0 +1,39 @@
+@reference "../../../../../styles/globals.css";
+
+.variant-pick-accordion-header {
+  h1 {
+    @apply !text-4xl;
+  }
+
+  h2 {
+    @apply !text-3xl;
+  }
+}
+
+.variant-pick-loading {
+  @apply relative min-h-80 w-full;
+}
+
+.variant-pick {
+  @apply max-w-full w-full overflow-y-auto custom-scrollbar;
+}
+
+.variant-pick-accordion-override {
+  @apply gap-y-5 mb-5;
+}
+
+.variant-pick-list {
+  @apply space-y-2 p-1 h-fit max-h-80 overflow-y-auto custom-scrollbar;
+}
+
+.variant-pick-list-selected {
+  @apply outline-4 outline-amber-400 rounded-lg;
+}
+
+.variant-pick-buttons {
+  @apply w-full flex flex-col gap-y-4;
+}
+
+.variant-pick-buttons-row {
+  @apply w-full flex gap-x-4;
+}

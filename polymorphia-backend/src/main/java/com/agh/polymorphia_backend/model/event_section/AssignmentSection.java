@@ -11,8 +11,6 @@ import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "assignment_sections")
-@Inheritance(strategy = InheritanceType.JOINED)
-
 @Data
 @NoArgsConstructor
 @SuperBuilder

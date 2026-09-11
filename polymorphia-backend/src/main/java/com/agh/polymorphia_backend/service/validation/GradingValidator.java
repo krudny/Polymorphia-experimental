@@ -9,11 +9,9 @@ import com.agh.polymorphia_backend.dto.request.target.TargetRequestDto;
 import com.agh.polymorphia_backend.model.criterion.Criterion;
 import com.agh.polymorphia_backend.model.criterion.CriterionReward;
 import com.agh.polymorphia_backend.model.gradable_event.GradableEvent;
-import com.agh.polymorphia_backend.model.project.ProjectGroup;
 import com.agh.polymorphia_backend.model.reward.Item;
 import com.agh.polymorphia_backend.model.reward.Reward;
 import com.agh.polymorphia_backend.model.reward.RewardType;
-import com.agh.polymorphia_backend.model.user.student.Student;
 import com.agh.polymorphia_backend.service.criterion.CriterionService;
 import com.agh.polymorphia_backend.service.project.ProjectGroupService;
 import com.agh.polymorphia_backend.service.reward.AssignedRewardService;
@@ -96,12 +94,7 @@ public class GradingValidator {
     }
 
     private void validateStudentGroupLimitAssignedRewards(Long groupId, Reward reward, Integer quantity, Long criterionId) {
-        ProjectGroup projectGroup = projectGroupService.findById(groupId);
-        List<Long> studentIds = projectGroupService.getStudentsFromProjectGroup(projectGroup)
-                .stream()
-                .map(Student::getUserId)
-                .toList();
-
+        List<Long> studentIds = projectGroupService.getStudentIdsFromProjectGroup(groupId);
         studentIds.forEach(studentId -> validateStudentLimitAssignedRewards(studentId, reward, quantity, criterionId));
     }
 

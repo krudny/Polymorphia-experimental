@@ -1,13 +1,13 @@
-import ProjectVariantInfo from "@/shared/project-variant-info";
+import ProjectVariantInfo from "@/components/speed-dial/modals/project-variant/project-variant-info";
 import ColumnComponent from "@/components/column-schema/column-component";
 import useTargetContext from "@/hooks/contexts/useTargetContext";
 import useGradingContext from "@/hooks/contexts/useGradingContext";
 import ColumnSwappableComponent from "@/components/column-schema/column-component/shared/column-swappable-component";
-import { ProjectVariantResponseDTO } from "@/interfaces/api/project";
+import { ProjectVariantWithCategoryNameResponseDTO } from "@/interfaces/api/project";
 import {
-  errorComponent,
-  noProjectVariantsErrorComponent,
-} from "@/shared/project-variant-info/errors";
+  errorComponentCompact,
+  noProjectVariantsErrorComponentCompact,
+} from "@/components/speed-dial/modals/project-variant/project-variant-info/errors";
 
 export function ProjectVariant() {
   const { projectVariants, isSpecificDataLoading, isSpecificDataError } =
@@ -17,7 +17,7 @@ export function ProjectVariant() {
   const topComponent = () => <h1>Warianty</h1>;
 
   const mainComponent = () => (
-    <ColumnSwappableComponent<ProjectVariantResponseDTO[]>
+    <ColumnSwappableComponent<ProjectVariantWithCategoryNameResponseDTO[]>
       data={projectVariants}
       isDataLoading={isSpecificDataLoading}
       isDataError={isSpecificDataError}
@@ -29,8 +29,10 @@ export function ProjectVariant() {
           color="gray"
         />
       )}
-      renderDataErrorComponent={() => errorComponent}
-      renderEmptyDataErrorComponent={() => noProjectVariantsErrorComponent}
+      renderDataErrorComponent={() => errorComponentCompact}
+      renderEmptyDataErrorComponent={() =>
+        noProjectVariantsErrorComponentCompact
+      }
       minHeightClassName="min-h-[250px]"
       selectedTarget={targetState.selectedTarget}
     />

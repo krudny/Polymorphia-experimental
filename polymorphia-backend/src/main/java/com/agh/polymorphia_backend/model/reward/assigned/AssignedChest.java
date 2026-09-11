@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -21,7 +22,8 @@ public class AssignedChest extends AssignedReward {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "assignedChest")
     @ToString.Exclude
     @JsonIgnore
-    private List<AssignedItem> assignedItems;
+    @Builder.Default
+    private List<AssignedItem> assignedItems = new ArrayList<>();
 
     @Override
     public RewardType getType() {

@@ -1,0 +1,5 @@
+@reference "../../../../../styles/globals.css";
+
+.new-card-text-accessory {
+  @apply w-full h-full flex-col-centered relative;
+}

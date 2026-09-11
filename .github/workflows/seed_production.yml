@@ -9,9 +9,7 @@ on:
         default: "seeds/seed-basic.sql"
         type: string
       confirmation_text:
-        description: "Type CONFIRM_PRODUCTION to apply seed to production"
         required: false
-        default: ""
         type: string
 
 permissions:

@@ -12,12 +12,12 @@ if [ ! -f /swapfile ]; then
 fi
 sysctl -w vm.swappiness=10
 
-# Instalacja pakietow podstawowych i narzedzi kompilacji nsjail
+# Czekanie na zwolnienie blokad pakietow
+while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do sleep 3; done
+
+# Instalacja pakietow podstawowych
 apt-get update
-apt-get install -y \
-  curl ca-certificates gnupg lsb-release jq \
-  git build-essential libprotobuf-dev libnl-route-3-dev protobuf-compiler \
-  libseccomp-dev flex bison pkg-config
+apt-get install -y curl ca-certificates gnupg lsb-release jq debian-keyring debian-archive-keyring apt-transport-https
 
 # Instalacja Java 25 (Adoptium Temurin)
 if ! command -v java &>/dev/null; then
@@ -73,16 +73,6 @@ usermod -aG docker k_rudny1
 echo "k_rudny1 ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/90-k_rudny1
 chmod 0440 /etc/sudoers.d/90-k_rudny1
 
-# Kompilacja i instalacja nsjail
-if ! command -v nsjail &>/dev/null; then
-  git clone https://github.com/google/nsjail.git /tmp/nsjail
-  cd /tmp/nsjail
-  make -j"$(nproc)"
-  cp nsjail /usr/local/bin/
-  cd /
-  rm -rf /tmp/nsjail
-fi
-
 # Instalacja Cloudflare Tunnel (cloudflared)
 if ! command -v cloudflared &>/dev/null; then
   curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
@@ -101,13 +91,16 @@ if [ -n "${TUNNEL_TOKEN}" ]; then
 fi
 
 # Przygotowanie katalogu aplikacji executora
-mkdir -p /opt/polymorphia-executor/config
-chown -R root:root /opt/polymorphia-executor
+mkdir -p /mnt/data/executor/config
+touch /mnt/data/executor/config/application.properties
+mkdir -p /opt
+ln -sfn /mnt/data/executor /opt/polymorphia-executor
+chown -R root:root /mnt/data/executor
 
 # Pobranie konfiguracji z Secret Managera (atomowy zapis)
 if gcloud secrets versions access latest --secret=executor-properties-dev > /tmp/exec_dev.props.tmp && [ -s /tmp/exec_dev.props.tmp ]; then
-  mv /tmp/exec_dev.props.tmp /opt/polymorphia-executor/config/application.properties
-  chmod 640 /opt/polymorphia-executor/config/application.properties
+  mv /tmp/exec_dev.props.tmp /mnt/data/executor/config/application.properties
+  chmod 640 /mnt/data/executor/config/application.properties
 fi
 
 # Konfiguracja serwisu systemd dla executora (z limitem pamieci dla 1 GB RAM)
@@ -119,8 +112,8 @@ After=network.target docker.service
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/opt/polymorphia-executor
-ExecStart=/usr/bin/java -Xms128m -Xmx256m -jar /opt/polymorphia-executor/executor.jar --spring.config.location=file:/opt/polymorphia-executor/config/application.properties
+WorkingDirectory=/mnt/data/executor
+ExecStart=/usr/bin/java -Xms128m -Xmx256m -jar /mnt/data/executor/executor.jar --spring.config.location=optional:file:/mnt/data/executor/config/application.properties
 Restart=always
 RestartSec=5
 LimitNOFILE=65536
@@ -131,6 +124,6 @@ EOF
 
 systemctl daemon-reload
 systemctl enable polymorphia-code-executor
-if [ -f /opt/polymorphia-executor/executor.jar ]; then
+if [ -f /mnt/data/executor/executor.jar ]; then
   systemctl restart polymorphia-code-executor
 fi

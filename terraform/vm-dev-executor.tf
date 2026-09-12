@@ -2,7 +2,7 @@ resource "google_compute_instance" "vm_dev_executor" {
   name         = "polymorphia-dev-executor-vm"
   machine_type = "e2-micro"
   zone         = var.zone_europe
-  tags         = ["ssh-enabled"]
+  tags         = ["direct-ssh", "ssh-enabled"]
 
   scheduling {
     preemptible        = true

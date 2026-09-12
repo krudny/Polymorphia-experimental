@@ -69,12 +69,41 @@ else
   cp /etc/ssh/ssh_host_* "${SSH_KEYS_BACKUP}/"
 fi
 
+# Pakiety podstawowe
 apt-get update
-apt-get install -y \
-  curl ca-certificates gnupg lsb-release jq \
-  debian-keyring debian-archive-keyring apt-transport-https \
-  git build-essential libprotobuf-dev libnl-route-3-dev protobuf-compiler \
-  libseccomp-dev flex bison pkg-config
+apt-get install -y curl ca-certificates gnupg lsb-release jq debian-keyring debian-archive-keyring apt-transport-https
+
+# Instalacja Caddy (wczesny start dla natychmiastowej dostepnosci portu 443)
+if ! command -v caddy &>/dev/null; then
+  curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+  curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
+  apt-get update
+  apt-get install -y caddy
+fi
+
+# Trwaly magazyn certyfikatow Caddy (ochrona przed limitami Let's Encrypt)
+CADDY_DATA="/mnt/data/caddy"
+mkdir -p "${CADDY_DATA}/data" "${CADDY_DATA}/config"
+chown -R caddy:caddy "${CADDY_DATA}"
+mkdir -p /etc/systemd/system/caddy.service.d
+cat > /etc/systemd/system/caddy.service.d/override.conf <<EOF
+[Unit]
+RequiresMountsFor=/mnt/data
+
+[Service]
+Environment="XDG_DATA_HOME=${CADDY_DATA}/data"
+Environment="XDG_CONFIG_HOME=${CADDY_DATA}/config"
+EOF
+systemctl daemon-reload
+
+# Konfiguracja Caddy
+cat > /etc/caddy/Caddyfile <<'EOF'
+production.polymorphia.pl {
+  reverse_proxy localhost:8080
+}
+EOF
+systemctl enable caddy
+systemctl restart caddy
 
 # Instalacja Docker (przed dodaniem uzytkownika do grupy docker)
 if ! command -v docker &>/dev/null; then
@@ -173,18 +202,11 @@ if ! command -v java &>/dev/null; then
   apt-get install -y temurin-25-jdk
 fi
 
-# Kompilacja nsjail
-if ! command -v nsjail &>/dev/null; then
-  git clone https://github.com/google/nsjail.git /tmp/nsjail
-  cd /tmp/nsjail
-  make -j"$(nproc)"
-  cp nsjail /usr/local/bin/
-  cd /
-  rm -rf /tmp/nsjail
-fi
-
 # Konfiguracja serwisu polymorphia-code-executor na produkcji (konfiguracja na trwalym dysku)
 mkdir -p "${EXECUTOR_DIR}/config"
+touch "${EXECUTOR_DIR}/config/application.properties"
+mkdir -p /opt
+ln -sfn "${EXECUTOR_DIR}" /opt/polymorphia-executor 2>/dev/null || true
 if gcloud secrets versions access latest --secret=executor-properties-production > /tmp/exec.props.tmp && [ -s /tmp/exec.props.tmp ]; then
   mv /tmp/exec.props.tmp "${EXECUTOR_DIR}/config/application.properties"
   chmod 640 "${EXECUTOR_DIR}/config/application.properties"
@@ -192,7 +214,7 @@ fi
 
 cat > /etc/systemd/system/polymorphia-code-executor.service <<'EOF'
 [Unit]
-Description=Polymorphia Code Executor (Production)
+Description=Polymorphia Code Executor
 After=network.target docker.service
 RequiresMountsFor=/mnt/data
 
@@ -200,7 +222,7 @@ RequiresMountsFor=/mnt/data
 Type=simple
 User=root
 WorkingDirectory=/mnt/data/executor
-ExecStart=/usr/bin/java -Xms128m -Xmx256m -jar /mnt/data/executor/executor.jar --spring.config.location=file:/mnt/data/executor/config/application.properties
+ExecStart=/usr/bin/java -Xms128m -Xmx256m -jar /mnt/data/executor/executor.jar --spring.config.location=optional:file:/mnt/data/executor/config/application.properties
 Restart=always
 RestartSec=5
 LimitNOFILE=65536
@@ -215,62 +237,8 @@ if [ -f /mnt/data/executor/executor.jar ]; then
   systemctl restart polymorphia-code-executor
 fi
 
-# Instalacja Caddy
-if ! command -v caddy &>/dev/null; then
-  curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-  curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
-  apt-get update
-  apt-get install -y caddy
-fi
-
-# Trwaly magazyn certyfikatow Caddy (ochrona przed limitami Let's Encrypt)
-CADDY_DATA="/mnt/data/caddy"
-mkdir -p "${CADDY_DATA}/data" "${CADDY_DATA}/config"
-chown -R caddy:caddy "${CADDY_DATA}"
-mkdir -p /etc/systemd/system/caddy.service.d
-cat > /etc/systemd/system/caddy.service.d/override.conf <<EOF
-[Service]
-Environment="XDG_DATA_HOME=${CADDY_DATA}/data"
-Environment="XDG_CONFIG_HOME=${CADDY_DATA}/config"
-EOF
-systemctl daemon-reload
-
 # Pobranie pliku konfiguracyjnego backendu z Secret Manager (atomowy zapis)
 if gcloud secrets versions access latest --secret=backend-properties-production > /tmp/prod.props.tmp && [ -s /tmp/prod.props.tmp ]; then
   mv /tmp/prod.props.tmp "${APP_CONFIG}/application.properties"
   chmod 644 "${APP_CONFIG}/application.properties"
-fi
-
-# Konfiguracja Caddy
-cat > /etc/caddy/Caddyfile <<'EOF'
-production.polymorphia.pl {
-  reverse_proxy localhost:8080
-}
-EOF
-systemctl enable caddy
-systemctl restart caddy
-
-# Uruchomienie kontenera produkcyjnego backendu po starcie/resecie maszyny (jesli obraz istnieje)
-IMAGE="europe-west1-docker.pkg.dev/polymorphia-b52b06/polymorphia/polymorphia-backend:latest-production"
-gcloud auth configure-docker europe-west1-docker.pkg.dev --quiet || true
-
-if docker image inspect "${IMAGE}" >/dev/null 2>&1 || docker pull "${IMAGE}" 2>/dev/null; then
-  # Jesli kontener juz istnieje, usuwamy go aby zawsze wystartowal z najnowszego pobranego obrazu
-  if docker ps -aq --filter "name=^polymorphia-backend-production$" | grep -q .; then
-    docker stop polymorphia-backend-production 2>/dev/null || true
-    docker rm polymorphia-backend-production 2>/dev/null || true
-  fi
-
-  docker run -d \
-    --name "polymorphia-backend-production" \
-    --restart unless-stopped \
-    --log-opt max-size=50m \
-    --log-opt max-file=3 \
-    -p 8080:8080 \
-    -v "${APP_CONFIG}":/app/config:ro \
-    -v "${STATIC_DATA}":/app/static \
-    "${IMAGE}" \
-    --spring.config.location=file:/app/config/application.properties
-else
-  echo "Obraz ${IMAGE} nie jest jeszcze dostepny w Artifact Registry. Kontener zostanie uruchomiony podczas pierwszego wdrozenia CI/CD."
 fi

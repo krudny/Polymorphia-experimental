@@ -110,6 +110,7 @@ jobs:
           host: ${{ secrets.VM_IP }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          command_timeout: 15m
           script: |
             set -uo pipefail
 
@@ -123,9 +124,12 @@ jobs:
             echo "Max wait: ${MAX_WAIT}s (retry every ${INTERVAL}s)"
 
             while [ "$elapsed" -lt "$MAX_WAIT" ]; do
-              HTTP_CODE=$(curl -sSL -o /tmp/health_response.json -w "%{http_code}" "$HEALTH_URL" || echo "000")
+              rm -f /tmp/health_response.json
+              HTTP_CODE=$(curl -sSL -o /tmp/health_response.json -w "%{http_code}" "$HEALTH_URL" 2>/dev/null || echo "000")
+              HTTP_CODE=$(echo "$HTTP_CODE" | tr -d '\r\n' | grep -oE '[0-9]{3}' | tail -n 1)
+              [ -z "$HTTP_CODE" ] && HTTP_CODE="000"
               echo "[$elapsed/${MAX_WAIT}s] HTTP $HTTP_CODE"
-              cat /tmp/health_response.json || true
+              [ -f /tmp/health_response.json ] && cat /tmp/health_response.json || true
               echo ""
 
               if [ "$HTTP_CODE" = "200" ]; then

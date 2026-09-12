@@ -22,9 +22,14 @@ on:
         required: false
         default: "/mnt/data/executor"
         description: "Installation directory on target host"
+      target-host:
+        type: string
+        required: false
+        default: ""
+        description: "Target host IP or domain (overrides secrets.VM_IP if provided)"
     secrets:
       VM_IP:
-        required: true
+        required: false
       VM_USER:
         required: true
       SSH_PRIVATE_KEY:
@@ -56,7 +61,7 @@ jobs:
       - name: Copy JAR to target host
         uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
         with:
-          host: ${{ secrets.VM_IP }}
+          host: ${{ inputs.target-host || secrets.VM_IP }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "polymorphia-code-executor/build/artifacts/executor.jar"
@@ -66,12 +71,17 @@ jobs:
       - name: Update service and verify health
         uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         with:
-          host: ${{ secrets.VM_IP }}
+          host: ${{ inputs.target-host || secrets.VM_IP }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          command_timeout: 10m
           script: |
             set -euo pipefail
             sudo mkdir -p "${{ inputs.target-dir }}"
+            if [ "${{ inputs.target-dir }}" = "/mnt/data/executor" ]; then
+              sudo mkdir -p /opt
+              sudo ln -sfn /mnt/data/executor /opt/polymorphia-executor 2>/dev/null || true
+            fi
             if [ -f /tmp/executor.jar ]; then
               sudo mv /tmp/executor.jar "${{ inputs.target-dir }}/executor.jar"
             elif [ -f /tmp/artifacts/executor.jar ]; then
@@ -89,7 +99,7 @@ jobs:
             sudo systemctl enable "${{ inputs.service-name }}"
             sudo systemctl restart "${{ inputs.service-name }}"
 
-            for i in {1..15}; do
+            for i in {1..45}; do
               if curl -sf "http://localhost:${{ inputs.service-port }}/actuator/health" >/dev/null 2>&1; then
                 echo "Service ${{ inputs.service-name }} is healthy on port ${{ inputs.service-port }}."
                 exit 0

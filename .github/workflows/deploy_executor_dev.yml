@@ -14,11 +14,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  prepare-vm:
     if: (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy-executor-dev')) || (github.event_name == 'workflow_dispatch' && github.actor == 'krudny')
-    name: Deploy Executor to Dev
+    name: Prepare Dev Executor VM
     runs-on: ubuntu-latest
     environment: dev-executor
+    outputs:
+      vm_ip: ${{ steps.vm-status.outputs.vm_ip }}
     steps:
       - name: Verify authorized user
         if: github.event_name == 'workflow_dispatch'
@@ -28,23 +30,6 @@ jobs:
             exit 1
           fi
 
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Setup Java 25
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
-        with:
-          distribution: "temurin"
-          java-version: "25"
-          cache: "gradle"
-
-      - name: Build JAR with Gradle
-        working-directory: ./polymorphia-code-executor
-        run: |
-          ./gradlew clean bootJar
-          mkdir -p build/artifacts
-          cp $(ls build/libs/*.jar | grep -v 'plain' | head -n 1) build/artifacts/executor.jar
-
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
@@ -53,65 +38,81 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
 
-      - name: Install NumPy for fast IAP tunnel transfer
+      - name: Ensure Dev Executor VM is running
+        id: vm-status
         run: |
-          pip3 install --quiet numpy
+          VM_NAME="${{ secrets.DEV_EXECUTOR_VM_NAME || 'polymorphia-dev-executor-vm' }}"
+          ZONE="${{ secrets.GCP_ZONE || 'europe-west1-b' }}"
 
-      - name: Check Dev Executor VM Status
-        run: |
-          VM_NAME="${{ secrets.DEV_EXECUTOR_VM_NAME }}"
-          ZONE="${{ secrets.GCP_ZONE }}"
-          STATUS=$(gcloud compute instances describe "$VM_NAME" --zone="$ZONE" --format="get(status)")
-          if [ "$STATUS" != "RUNNING" ]; then
-            echo "Error: Instance $VM_NAME in zone $ZONE is not RUNNING (status: $STATUS)."
-            echo "Use the 'Util | Manage Executor VM' workflow to start it first."
-            exit 1
-          fi
-          echo "VM $VM_NAME is RUNNING."
+          STATUS=$(gcloud compute instances describe "$VM_NAME" --zone="$ZONE" --format="get(status)" 2>/dev/null || echo "UNKNOWN")
+          echo "Current VM status: $STATUS"
 
-      - name: Configure SSH and IAP Tunnel
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEV_EXECUTOR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-
-          cat << 'EOF' > ~/.ssh/config
-          Host dev-executor
-            HostName ${{ secrets.DEV_EXECUTOR_VM_NAME }}
-            User ${{ secrets.DEV_EXECUTOR_VM_USER }}
-            IdentityFile ~/.ssh/id_rsa
-            StrictHostKeyChecking no
-            UserKnownHostsFile /dev/null
-            ProxyCommand gcloud compute start-iap-tunnel %h %p --listen-on-stdin --zone=${{ secrets.GCP_ZONE }} --project=${{ secrets.GCP_PROJECT_ID }} --verbosity=warning
-          EOF
-          chmod 600 ~/.ssh/config
-
-      - name: Copy JAR via IAP Tunnel
-        run: |
-          echo "Transferring executor.jar via IAP tunnel..."
-          scp ./polymorphia-code-executor/build/artifacts/executor.jar dev-executor:/tmp/executor.jar
-
-      - name: Update service and verify health via IAP Tunnel
-        run: |
-          echo "Updating service on dev-executor via IAP tunnel..."
-          ssh dev-executor << 'EOF'
-            set -euo pipefail
-            sudo mkdir -p /opt/polymorphia-executor /mnt/data/executor
-            sudo cp /tmp/executor.jar /opt/polymorphia-executor/executor.jar
-            sudo mv /tmp/executor.jar /mnt/data/executor/executor.jar 2>/dev/null || true
-            sudo systemctl daemon-reload
-            sudo systemctl enable polymorphia-code-executor
-            sudo systemctl restart polymorphia-code-executor
-
-            for i in {1..15}; do
-              if curl -sf "http://localhost:8100/actuator/health" >/dev/null 2>&1; then
-                echo "Service polymorphia-code-executor is healthy on port 8100."
-                exit 0
+          if [ "$STATUS" = "STOPPING" ]; then
+            echo "VM $VM_NAME is STOPPING. Waiting for it to terminate..."
+            for i in {1..30}; do
+              STATUS=$(gcloud compute instances describe "$VM_NAME" --zone="$ZONE" --format="get(status)" 2>/dev/null || echo "UNKNOWN")
+              if [ "$STATUS" = "TERMINATED" ]; then
+                break
               fi
               sleep 2
             done
+          fi
 
-            echo "Error: Service polymorphia-code-executor failed health check."
-            sudo journalctl -u polymorphia-code-executor -n 50 --no-pager
+          if [ "$STATUS" != "RUNNING" ]; then
+            echo "Starting VM $VM_NAME in zone $ZONE..."
+            gcloud compute instances start "$VM_NAME" --zone="$ZONE"
+
+            for i in {1..30}; do
+              STATUS=$(gcloud compute instances describe "$VM_NAME" --zone="$ZONE" --format="get(status)" 2>/dev/null || echo "UNKNOWN")
+              if [ "$STATUS" = "RUNNING" ]; then
+                echo "VM $VM_NAME is now RUNNING."
+                break
+              fi
+              sleep 2
+            done
+          fi
+
+          VM_IP=""
+          for i in {1..15}; do
+            VM_IP=$(gcloud compute instances describe "$VM_NAME" --zone="$ZONE" --format="get(networkInterfaces[0].accessConfigs[0].natIP)" 2>/dev/null || true)
+            if [ -n "$VM_IP" ]; then
+              break
+            fi
+            sleep 2
+          done
+
+          if [ -z "$VM_IP" ]; then
+            VM_IP="${{ secrets.DEV_EXECUTOR_VM_IP }}"
+          fi
+
+          if [ -z "$VM_IP" ]; then
+            echo "Error: Could not retrieve external IP for $VM_NAME in zone $ZONE."
             exit 1
-          EOF
+          fi
+
+          echo "vm_ip=$VM_IP" >> "$GITHUB_OUTPUT"
+          echo "Resolved VM IP: $VM_IP"
+
+          echo "Waiting for SSH port 22 to be accessible..."
+          for i in {1..30}; do
+            if timeout 3 bash -c "cat < /dev/null > /dev/tcp/$VM_IP/22" 2>/dev/null || nc -z -w 3 "$VM_IP" 22 2>/dev/null; then
+              echo "SSH port 22 is open."
+              break
+            fi
+            sleep 2
+          done
+
+  deploy:
+    needs: [prepare-vm]
+    name: Deploy Executor to Dev
+    uses: ./.github/workflows/deploy_executor_to_env.yml
+    with:
+      environment: dev-executor
+      target-host: ${{ needs.prepare-vm.outputs.vm_ip }}
+      service-name: polymorphia-code-executor
+      service-port: 8100
+      target-dir: /mnt/data/executor
+    secrets:
+      VM_IP: ${{ secrets.DEV_EXECUTOR_VM_IP }}
+      VM_USER: ${{ secrets.DEV_EXECUTOR_VM_USER || 'k_rudny1' }}
+      SSH_PRIVATE_KEY: ${{ secrets.DEV_EXECUTOR_SSH_PRIVATE_KEY }}

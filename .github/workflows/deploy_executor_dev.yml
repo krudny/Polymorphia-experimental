@@ -47,7 +47,7 @@ jobs:
           VM_IP=$(gcloud compute instances describe "$VM_NAME" --zone="$ZONE" --format="get(networkInterfaces[0].accessConfigs[0].natIP)" 2>/dev/null || true)
 
           if [ -z "$VM_IP" ]; then
-            echo "Error: Could not obtain external IP for $VM_NAME in zone $ZONE. Is the VM running?"
+            echo "Error: Could not obtain external IP for $VM_NAME in zone $ZONE."
             exit 1
           fi
 

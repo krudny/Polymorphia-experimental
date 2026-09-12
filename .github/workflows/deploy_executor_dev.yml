@@ -14,13 +14,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  prepare-vm:
+  resolve-host:
     if: (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'deploy-executor-dev')) || (github.event_name == 'workflow_dispatch' && github.actor == 'krudny')
-    name: Prepare Dev Executor VM
+    name: Resolve Dev Executor Host
     runs-on: ubuntu-latest
     environment: dev-executor
     outputs:
-      vm_ip: ${{ steps.vm-status.outputs.vm_ip }}
+      vm_ip: ${{ steps.get-ip.outputs.vm_ip }}
     steps:
       - name: Verify authorized user
         if: github.event_name == 'workflow_dispatch'
@@ -38,81 +38,32 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
 
-      - name: Ensure Dev Executor VM is running
-        id: vm-status
+      - name: Get VM External IP
+        id: get-ip
         run: |
           VM_NAME="${{ secrets.DEV_EXECUTOR_VM_NAME || 'polymorphia-dev-executor-vm' }}"
           ZONE="${{ secrets.GCP_ZONE || 'europe-west1-b' }}"
 
-          STATUS=$(gcloud compute instances describe "$VM_NAME" --zone="$ZONE" --format="get(status)" 2>/dev/null || echo "UNKNOWN")
-          echo "Current VM status: $STATUS"
-
-          if [ "$STATUS" = "STOPPING" ]; then
-            echo "VM $VM_NAME is STOPPING. Waiting for it to terminate..."
-            for i in {1..30}; do
-              STATUS=$(gcloud compute instances describe "$VM_NAME" --zone="$ZONE" --format="get(status)" 2>/dev/null || echo "UNKNOWN")
-              if [ "$STATUS" = "TERMINATED" ]; then
-                break
-              fi
-              sleep 2
-            done
-          fi
-
-          if [ "$STATUS" != "RUNNING" ]; then
-            echo "Starting VM $VM_NAME in zone $ZONE..."
-            gcloud compute instances start "$VM_NAME" --zone="$ZONE"
-
-            for i in {1..30}; do
-              STATUS=$(gcloud compute instances describe "$VM_NAME" --zone="$ZONE" --format="get(status)" 2>/dev/null || echo "UNKNOWN")
-              if [ "$STATUS" = "RUNNING" ]; then
-                echo "VM $VM_NAME is now RUNNING."
-                break
-              fi
-              sleep 2
-            done
-          fi
-
-          VM_IP=""
-          for i in {1..15}; do
-            VM_IP=$(gcloud compute instances describe "$VM_NAME" --zone="$ZONE" --format="get(networkInterfaces[0].accessConfigs[0].natIP)" 2>/dev/null || true)
-            if [ -n "$VM_IP" ]; then
-              break
-            fi
-            sleep 2
-          done
+          VM_IP=$(gcloud compute instances describe "$VM_NAME" --zone="$ZONE" --format="get(networkInterfaces[0].accessConfigs[0].natIP)" 2>/dev/null || true)
 
           if [ -z "$VM_IP" ]; then
-            VM_IP="${{ secrets.DEV_EXECUTOR_VM_IP }}"
-          fi
-
-          if [ -z "$VM_IP" ]; then
-            echo "Error: Could not retrieve external IP for $VM_NAME in zone $ZONE."
+            echo "Error: Could not obtain external IP for $VM_NAME in zone $ZONE. Is the VM running?"
             exit 1
           fi
 
           echo "vm_ip=$VM_IP" >> "$GITHUB_OUTPUT"
-          echo "Resolved VM IP: $VM_IP"
-
-          echo "Waiting for SSH port 22 to be accessible..."
-          for i in {1..30}; do
-            if timeout 3 bash -c "cat < /dev/null > /dev/tcp/$VM_IP/22" 2>/dev/null || nc -z -w 3 "$VM_IP" 22 2>/dev/null; then
-              echo "SSH port 22 is open."
-              break
-            fi
-            sleep 2
-          done
+          echo "Resolved dynamic IP: $VM_IP"
 
   deploy:
-    needs: [prepare-vm]
+    needs: [resolve-host]
     name: Deploy Executor to Dev
     uses: ./.github/workflows/deploy_executor_to_env.yml
     with:
       environment: dev-executor
-      target-host: ${{ needs.prepare-vm.outputs.vm_ip }}
+      target-host: ${{ needs.resolve-host.outputs.vm_ip }}
       service-name: polymorphia-code-executor
       service-port: 8100
       target-dir: /mnt/data/executor
     secrets:
-      VM_IP: ${{ secrets.DEV_EXECUTOR_VM_IP }}
       VM_USER: ${{ secrets.DEV_EXECUTOR_VM_USER || 'k_rudny1' }}
       SSH_PRIVATE_KEY: ${{ secrets.DEV_EXECUTOR_SSH_PRIVATE_KEY }}

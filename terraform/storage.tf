@@ -6,7 +6,7 @@ resource "google_storage_bucket" "seed_bucket" {
   uniform_bucket_level_access = true
 
   versioning {
-    enabled = false # Wyłączone, by nie płacić za stare wersje nadpisanych plików
+    enabled = false
   }
 }
 

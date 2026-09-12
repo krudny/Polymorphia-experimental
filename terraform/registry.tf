@@ -19,7 +19,7 @@ resource "google_artifact_registry_repository" "polymorphia_repo" {
     action = "DELETE"
     condition {
       tag_state  = "TAGGED"
-      older_than = "259200s" # 3 dni
+      older_than = "259200s"
     }
   }
 
@@ -28,7 +28,7 @@ resource "google_artifact_registry_repository" "polymorphia_repo" {
     action = "DELETE"
     condition {
       tag_state  = "UNTAGGED"
-      older_than = "86400s" # 1 dzień
+      older_than = "86400s"
     }
   }
 }

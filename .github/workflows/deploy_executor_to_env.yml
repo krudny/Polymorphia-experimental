@@ -78,10 +78,6 @@ jobs:
           script: |
             set -euo pipefail
             sudo mkdir -p "${{ inputs.target-dir }}"
-            if [ "${{ inputs.target-dir }}" = "/mnt/data/executor" ]; then
-              sudo mkdir -p /opt
-              sudo ln -sfn /mnt/data/executor /opt/polymorphia-executor 2>/dev/null || true
-            fi
             if [ -f /tmp/executor.jar ]; then
               sudo mv /tmp/executor.jar "${{ inputs.target-dir }}/executor.jar"
             elif [ -f /tmp/artifacts/executor.jar ]; then
@@ -95,6 +91,11 @@ jobs:
                 exit 1
               fi
             fi
+            sudo mkdir -p /opt/polymorphia-executor/config /mnt/data/executor/config 2>/dev/null || true
+            sudo touch /opt/polymorphia-executor/config/application.properties /mnt/data/executor/config/application.properties 2>/dev/null || true
+            sudo cp -f "${{ inputs.target-dir }}/executor.jar" /opt/polymorphia-executor/executor.jar 2>/dev/null || true
+            sudo cp -f "${{ inputs.target-dir }}/executor.jar" /mnt/data/executor/executor.jar 2>/dev/null || true
+            sudo chmod 755 /opt/polymorphia-executor/executor.jar /mnt/data/executor/executor.jar "${{ inputs.target-dir }}/executor.jar" 2>/dev/null || true
             sudo systemctl daemon-reload
             sudo systemctl enable "${{ inputs.service-name }}"
             sudo systemctl restart "${{ inputs.service-name }}"

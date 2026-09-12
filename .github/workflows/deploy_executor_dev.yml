@@ -63,7 +63,7 @@ jobs:
       target-host: ${{ needs.resolve-host.outputs.vm_ip }}
       service-name: polymorphia-code-executor
       service-port: 8100
-      target-dir: /mnt/data/executor
+      target-dir: /opt/polymorphia-executor
     secrets:
       VM_USER: ${{ secrets.DEV_EXECUTOR_VM_USER || 'k_rudny1' }}
       SSH_PRIVATE_KEY: ${{ secrets.DEV_EXECUTOR_SSH_PRIVATE_KEY }}
